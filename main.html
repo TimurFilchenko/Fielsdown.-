@@ -1,0 +1,386 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Красивый Загрузчик</title>
+    <link rel="stylesheet" href="loader.css">
+</head>
+<body>
+    <div class="background-animation">
+        <ul class="background-shapes">
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+        </ul>
+    </div>
+
+    <div class="loader-wrapper">
+        <div class="loader-container">
+            <div class="loader-circle">
+                <div class="loader-circle-inner"></div>
+            </div>
+            <div class="loader-line-container">
+                <div class="loader-line loader-line-1"></div>
+                <div class="loader-line loader-line-2"></div>
+                <div class="loader-line loader-line-3"></div>
+                <div class="loader-line loader-line-4"></div>
+                <div class="loader-line loader-line-5"></div>
+            </div>
+            <div class="loader-text">
+                <span data-text="З">З</span>
+                <span data-text="А">А</span>
+                <span data-text="Г">Г</span>
+                <span data-text="Р">Р</span>
+                <span data-text="У">У</span>
+                <span data-text="З">З</span>
+                <span data-text="К">К</span>
+                <span data-text="А">А</span>
+                <span data-text=".">.</span>
+                <span data-text=".">.</span>
+                <span data-text=".">.</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+CSS:
+
+/* ------------------------------------ */
+/* Global Styles                        */
+/* ------------------------------------ */
+:root {
+    --primary-color: #4CAF50;
+    --secondary-color: #2196F3;
+    --tertiary-color: #FFC107;
+    --background-color: #121212;
+    --text-color: #E0E0E0;
+    --subtle-text-color: #757575;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    overflow: hidden;
+}
+
+/* ------------------------------------ */
+/* Loader Wrapper & Container           */
+/* ------------------------------------ */
+.loader-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    perspective: 1000px;
+}
+
+.loader-container {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform-style: preserve-3d;
+}
+
+/* ------------------------------------ */
+/* Loader Circle Animation              */
+/* ------------------------------------ */
+.loader-circle {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 4px solid var(--primary-color);
+    border-top-color: transparent;
+    border-left-color: transparent;
+    animation: rotate-circle 4s cubic-bezier(0.65, 0.05, 0.36, 1) infinite;
+    transform-origin: center center;
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.5), inset 0 0 20px rgba(76, 175, 80, 0.3);
+}
+
+.loader-circle-inner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 80%;
+    border-radius: 50%;
+    border: 4px solid var(--secondary-color);
+    border-bottom-color: transparent;
+    border-right-color: transparent;
+    animation: rotate-circle-inner 3s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+    transform-origin: center center;
+    box-shadow: 0 0 15px rgba(33, 150, 243, 0.5), inset 0 0 15px rgba(33, 150, 243, 0.3);
+}
+
+/* ------------------------------------ */
+/* Loader Lines Animation               */
+/* ------------------------------------ */
+.loader-line-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transform: rotate(45deg);
+}
+
+.loader-line {
+    position: absolute;
+    width: 2px;
+    height: 0;
+    background-color: var(--tertiary-color);
+    opacity: 0;
+    transform-origin: top center;
+    box-shadow: 0 0 10px var(--tertiary-color);
+}
+
+.loader-line-1 {
+    top: 0;
+    left: 50%;
+    animation: grow-line 2s ease-in-out infinite, fade-line 2s ease-in-out infinite;
+}
+
+.loader-line-2 {
+    bottom: 0;
+    left: 50%;
+    animation: grow-line 2s 0.2s ease-in-out infinite, fade-line 2s 0.2s ease-in-out infinite;
+}
+
+.loader-line-3 {
+    top: 50%;
+    left: 0;
+    transform: rotate(90deg);
+    animation: grow-line 2s 0.4s ease-in-out infinite, fade-line 2s 0.4s ease-in-out infinite;
+}
+
+.loader-line-4 {
+    top: 50%;
+    right: 0;
+    transform: rotate(90deg);
+    animation: grow-line 2s 0.6s ease-in-out infinite, fade-line 2s 0.6s ease-in-out infinite;
+}
+
+.loader-line-5 {
+    top: 50%;
+    left: 50%;
+    transform: rotate(135deg);
+    animation: grow-line 2s 0.8s ease-in-out infinite, fade-line 2s 0.8s ease-in-out infinite;
+}
+
+/* ------------------------------------ */
+/* Text Animation                       */
+/* ------------------------------------ */
+.loader-text {
+    position: relative;
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: 5px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    color: var(--text-color);
+    display: flex;
+    gap: 0.2rem;
+}
+
+.loader-text span {
+    animation: text-pop-out 3s ease-in-out infinite alternate;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.loader-text span:nth-child(1) { animation-delay: 0.1s; }
+.loader-text span:nth-child(2) { animation-delay: 0.2s; }
+.loader-text span:nth-child(3) { animation-delay: 0.3s; }
+.loader-text span:nth-child(4) { animation-delay: 0.4s; }
+.loader-text span:nth-child(5) { animation-delay: 0.5s; }
+.loader-text span:nth-child(6) { animation-delay: 0.6s; }
+.loader-text span:nth-child(7) { animation-delay: 0.7s; }
+.loader-text span:nth-child(8) { animation-delay: 0.8s; }
+.loader-text span:nth-child(9) { animation-delay: 0.9s; }
+.loader-text span:nth-child(10) { animation-delay: 1.0s; }
+.loader-text span:nth-child(11) { animation-delay: 1.1s; }
+
+/* ------------------------------------ */
+/* Background Animation                 */
+/* ------------------------------------ */
+.background-animation {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
+}
+
+.background-shapes {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    list-style: none;
+    overflow: hidden;
+}
+
+.background-shapes li {
+    position: absolute;
+    display: block;
+    width: 20px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    animation: animate-background 25s linear infinite;
+    bottom: -150px;
+}
+
+.background-shapes li:nth-child(1) {
+    left: 25%;
+    width: 80px;
+    height: 80px;
+    animation-delay: 0s;
+}
+
+.background-shapes li:nth-child(2) {
+    left: 10%;
+    width: 20px;
+    height: 20px;
+    animation-delay: 2s;
+    animation-duration: 12s;
+}
+
+.background-shapes li:nth-child(3) {
+    left: 70%;
+    width: 20px;
+    height: 20px;
+    animation-delay: 4s;
+}
+
+.background-shapes li:nth-child(4) {
+    left: 40%;
+    width: 60px;
+    height: 60px;
+    animation-delay: 0s;
+    animation-duration: 18s;
+}
+
+.background-shapes li:nth-child(5) {
+    left: 65%;
+    width: 20px;
+    height: 20px;
+    animation-delay: 0s;
+}
+
+.background-shapes li:nth-child(6) {
+    left: 75%;
+    width: 110px;
+    height: 110px;
+    animation-delay: 3s;
+}
+
+.background-shapes li:nth-child(7) {
+    left: 35%;
+    width: 150px;
+    height: 150px;
+    animation-delay: 7s;
+}
+
+.background-shapes li:nth-child(8) {
+    left: 50%;
+    width: 25px;
+    height: 25px;
+    animation-delay: 15s;
+    animation-duration: 45s;
+}
+
+.background-shapes li:nth-child(9) {
+    left: 20%;
+    width: 15px;
+    height: 15px;
+    animation-delay: 2s;
+    animation-duration: 35s;
+}
+
+.background-shapes li:nth-child(10) {
+    left: 85%;
+    width: 150px;
+    height: 150px;
+    animation-delay: 0s;
+    animation-duration: 11s;
+}
+
+/* ------------------------------------ */
+/* Keyframes Animations                 */
+/* ------------------------------------ */
+@keyframes rotate-circle {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes rotate-circle-inner {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(-360deg); }
+}
+
+@keyframes grow-line {
+    0%, 100% { height: 0; transform: translateY(0); }
+    50% { height: 100px; transform: translateY(-50px); }
+}
+
+@keyframes fade-line {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 1; }
+}
+
+@keyframes text-pop-out {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+        filter: blur(5px);
+    }
+    50% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-20px);
+        filter: blur(5px);
+    }
+}
+
+@keyframes animate-background {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+        border-radius: 0;
+    }
+    100% {
+        transform: translateY(-1000px) rotate(720deg);
+        opacity: 0;
+        border-radius: 50%;
+    }
+}
+
