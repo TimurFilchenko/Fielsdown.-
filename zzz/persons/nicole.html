@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Николь Демара — Fielsdown</title>
+  <meta name="description" content="Николь Демара — король Pornhub"/>
+  <style>
+    /* =============
+       RESET & BASE
+       ============= */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: #0a0a0a;
+      color: #e8e8e8;
+      font-family: 'Segoe UI', 'Courier New', monospace;
+      line-height: 1.75;
+      font-size: 16px;
+      padding: 20px;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(30, 0, 0, 0.25) 0%, transparent 25%),
+        radial-gradient(circle at 90% 80%, rgba(50, 0, 0, 0.2) 0%, transparent 30%);
+    }
+
+    a {
+      color: #ff5555;
+      text-decoration: none;
+      border-bottom: 1px dotted #ff5555;
+    }
+
+    a:hover {
+      color: #ff8888;
+      text-decoration: none;
+    }
+
+    /* =============
+       HEADER
+       ============= */
+    header {
+      max-width: 950px;
+      margin: 0 auto 40px;
+      text-align: center;
+      padding: 30px 20px;
+      border-bottom: 2px solid #ff3333;
+    }
+
+    .site-title {
+      font-size: 2.8rem;
+      color: #ff3333;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      margin-bottom: 10px;
+      font-weight: 900;
+    }
+
+    .subtitle {
+      font-size: 1.25rem;
+      color: #bbb;
+      margin-bottom: 20px;
+      font-style: italic;
+    }
+
+    .warning-box {
+      background: #1a0505;
+      border: 1px solid #ff4444;
+      border-radius: 6px;
+      padding: 25px;
+      margin: 25px auto;
+      max-width: 900px;
+      font-size: 0.98rem;
+      line-height: 1.7;
+    }
+
+    .warning-box strong {
+      color: #ff6666;
+    }
+
+    .warning-box code {
+      background: #220000;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+
+    /* =============
+       MAIN CONTENT
+       ============= */
+    .review-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #121212;
+      padding: 40px;
+      border: 1px solid #333;
+      border-radius: 8px;
+      box-shadow: 0 0 25px rgba(255, 50, 50, 0.1);
+    }
+
+    /* CHARACTER HEADER WITH AVATAR */
+    .character-header {
+      text-align: center;
+      margin-bottom: 35px;
+      padding-bottom: 25px;
+      border-bottom: 1px dashed #444;
+    }
+
+    .avatar-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .character-avatar {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      border: 2px solid #ff5555;
+      box-shadow: 0 0 25px rgba(255, 85, 85, 0.6);
+      background: #1a1a1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s ease;
+    }
+
+    .character-avatar:hover {
+      transform: scale(1.05);
+    }
+
+    .character-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    .character-name {
+      font-size: 2.6rem;
+      color: #ff6666;
+      margin-bottom: 12px;
+    }
+
+    .game-tag {
+      display: inline-block;
+      background: #222;
+      color: #ff9999;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.95rem;
+      letter-spacing: 1px;
+      margin-bottom: 20px;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .tag {
+      background: #330000;
+      color: #ff8888;
+      padding: 7px 16px;
+      border-radius: 20px;
+      font-size: 0.95rem;
+      font-family: monospace;
+    }
+
+    .section-title {
+      font-size: 1.7rem;
+      color: #ff7777;
+      margin: 35px 0 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #333;
+    }
+
+    .section-content p {
+      margin-bottom: 20px;
+      font-size: 1.08rem;
+    }
+
+    .section-content ul, .section-content ol {
+      margin: 20px 0 25px 30px;
+      line-height: 1.8;
+    }
+
+    .section-content li {
+      margin-bottom: 14px;
+    }
+
+    .quote {
+      font-style: italic;
+      color: #ddd;
+      border-left: 4px solid #ff5555;
+      padding: 18px 25px;
+      margin: 25px 0;
+      background: #1a1a1a;
+      border-radius: 0 8px 8px 0;
+      font-size: 1.1rem;
+    }
+
+    .verdict-box {
+      background: #200505;
+      border: 1px dashed #ff5555;
+      padding: 30px;
+      margin-top: 40px;
+      font-size: 1.15rem;
+      line-height: 1.8;
+    }
+
+    .verdict-box h3 {
+      color: #ff6666;
+      margin-bottom: 20px;
+      font-size: 1.6rem;
+    }
+
+    /* TABLE STYLES */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 25px 0;
+      background: #151515;
+    }
+
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #333;
+    }
+
+    th {
+      background: #220000;
+      color: #ff8888;
+      font-weight: bold;
+    }
+
+    tr:hover {
+      background: #1a1a1a;
+    }
+
+    /* HIGHLIGHTS */
+    .highlight {
+      color: #ff9999;
+      font-weight: bold;
+    }
+
+    .critical {
+      color: #ff4444;
+      font-weight: bold;
+    }
+
+    .fade {
+      opacity: 0.75;
+    }
+
+    .note {
+      background: #0f1f1f;
+      padding: 15px;
+      border-left: 3px solid #55aa55;
+      margin: 20px 0;
+      font-style: italic;
+    }
+
+    /* FOOTER */
+    footer {
+      text-align: center;
+      margin-top: 60px;
+      padding-top: 25px;
+      color: #666;
+      font-size: 0.95rem;
+      border-top: 1px solid #222;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 18px;
+      color: #ff7777;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      body {
+        padding: 15px;
+        font-size: 15px;
+      }
+      .review-container {
+        padding: 25px 20px;
+      }
+      .character-name {
+        font-size: 2.1rem;
+      }
+      .character-avatar {
+        width: 120px;
+        height: 120px;
+      }
+      .section-title {
+        font-size: 1.5rem;
+      }
+      table, th, td {
+        font-size: 0.9rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .site-title {
+        font-size: 2rem;
+      }
+      .character-name {
+        font-size: 1.9rem;
+      }
+      .character-avatar {
+        width: 100px;
+        height: 100px;
+      }
+      .warning-box {
+        padding: 18px;
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="site-title">Fielsdown</div>
+    <div class="subtitle">Герои падают здесь первыми</div>
+
+    <div class="warning-box">
+      <strong>ВНИМАНИЕ:</strong> Этот сайт содержит жёсткую, саркастичную критику персонажей из анимешных игр. Мы не ненавидим — мы вскрываем. Если вы верите, что «лидерша в короткой юбке = глубина» — <strong>вам не сюда</strong>.<br><br>
+      Контент предназначен для взрослых. Автор не несёт ответственности за разрушенные иллюзии или внезапное осознание, что ваша «любимая героиня» — <code>главный инструмент сексуализации в ZZZ</code>.
+    </div>
+  </header>
+
+  <main class="review-container">
+
+    <div class="character-header">
+      <div class="avatar-container">
+        <div class="character-avatar">
+          <img 
+            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSgv12borKERJbLuccHmSxFw-wfgk72PbkZ_J9cJKnAZA&s=10" 
+            onerror="this.onerror=null;this.src='image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNDUiIGZpbGw9IiMxYTEyMTIiIHN0cm9rZT0iI2ZmNTU1NSIgc3Ryb2tlLXdpZHRoPSIyIi8+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iMzAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmNTU1NSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9zdmc+';"
+          >
+        </div>
+      </div>
+
+      <h1 class="character-name">Николь Демара</h1>
+      <div class="game-tag">Zenless Zone Zero</div>
+
+      <div class="tags">
+        <span class="tag">Королева Rule 34</span>
+        <span class="tag">Сексуализация под прикрытием "лидерства"</span>
+        <span class="tag">Пустой трофей</span>
+        <span class="tag">Гача-кукла</span>
+        <span class="tag">Маркетинговая приманка</span>
+        <span class="tag">Инструмент возбуждения</span>
+      </div>
+    </div>
+
+    <!-- Section 1: Внешность -->
+    <h2 class="section-title">1. Внешность: «Лидерша» или главный фетиш-объект ZZZ?</h2>
+    <div class="section-content">
+      <p>
+        Николь Демара — не просто персонаж. Она — <span class="highlight">визуальный манифест сексуализации</span> в Zenless Zone Zero.
+      </p>
+      <p>
+        Короткая юбка? Есть.  
+        Чулки с подвязками? Есть.  
+        Открытый живот, глубокий вырез, поза «я властная, но доступная»? <span class="critical">Обязательно.</span>
+      </p>
+      <p>
+        Её дизайн не про лидерство. Это про <span class="highlight">максимальную фетишизацию</span>.  
+        И это работает: Николь — <span class="critical">самый популярный персонаж в Rule 34</span> задолго до релиза игры.
+      </p>
+    </div>
+
+    <!-- Section 2: Характер: «Я за всех отвечаю» — но за что? -->
+    <h2 class="section-title">2. Характер: «Лидерша» без лидерства</h2>
+    <div class="section-content">
+      <p>
+        Николь говорит: <span class="quote">«Я за всех отвечаю»</span>.  
+        Звучит благородно? Только до тех пор, пока ты не поймёшь: это не ответственность. Это <span class="critical">пустая фраза для имиджа</span>.
+      </p>
+      <p>
+        У неё нет стратегии. Нет жертв. Нет настоящих решений.  
+        Она просто даёт команды, которые никто не оспаривает, и улыбается.
+      </p>
+      <p>
+        Это не лидер. Это <span class="highlight">манекен в костюме власти</span>.
+      </p>
+    </div>
+
+    <!-- Section 3: Сексуализация под маской "авторитета" -->
+    <h2 class="section-title">3. «Властная женщина» — значит, объект для доминации?</h2>
+    <div class="section-content">
+      <p>
+        HoYoverse сознательно использует троп «властная женщина», чтобы спровоцировать фетиш <span class="highlight">«доминирование → покорение»</span>.
+      </p>
+      <p>
+        Её «авторитет» — это не сила. Это <span class="critical">приглашение сломать её</span>.  
+        Её «уверенность» — это вызов.  
+        Её сексуализированный дизайн — это не «стиль», а <span class="highlight">прямой сигнал для фантазий</span>.
+      </p>
+      <p>
+        В официальных артах она стоит с руками на бёдрах, грудью вперёд, ноги врозь — поза власти? Нет. Это <span class="critical">поза для возбуждения</span>.
+      </p>
+    </div>
+
+    <!-- Section 4: Rule 34 — не следствие, а цель -->
+    <h2 class="section-title">4. Обвинение: Николь — сознательно созданный король Rule 34</h2>
+    <div class="section-content">
+      <p>
+        Да, это обвинение. И оно доказуемо.
+      </p>
+      <p>
+        Николь — не «случайно популярный» персонаж. Она — <span class="critical">спроектированный триггер</span> для сексуального контента.
+      </p>
+      <p>
+        HoYoverse:
+        <ul>
+          <li>Сделала её лидером (статус = желание «покорить»)</li>
+          <li>Надела короткую юбку и чулки (визуал = фетиш)</li>
+          <li>Добавила «уверенность» (поведение = вызов)</li>
+        </ul>
+      </p>
+      <p>
+        Результат? В первые часы после анонса — тысячи хентай-артов.  
+        Это не «фанаты переборщили». Это <span class="highlight">точное попадание в цель</span>.
+      </p>
+    </div>
+
+    <!-- Section 5: Геймплей: DPS без души -->
+    <h2 class="section-title">5. В бою: красиво, но бессмысленно</h2>
+    <div class="section-content">
+      <p>
+        Николь — агент типа «DPS». Её ультимейт — взрыв огня.  
+        Красиво? Да. Уникально? <span class="critical">Нет</span>.
+      </p>
+      <p>
+        Её роль в сюжете? Декоративная.  
+        Её влияние на команду? Только урон.
+      </p>
+      <p>
+        Она не раскрывается. Не страдает. Не растёт.  
+        Она — <span class="critical">огненный манекен с юбкой</span>.
+      </p>
+    </div>
+
+    <!-- Section 6: Сравнение с настоящими лидерами -->
+    <h2 class="section-title">6. Где настоящая лидерша?</h2>
+    <div class="section-content">
+      <p>
+        Настоящий лидер — это не короткая юбка и уверенный тон.  
+        Это Джейн Шепард из «Mass Effect» — жертвует собой ради команды.  
+        Это Эрвин Смит из «Атаки титанов» — ведёт за собой, зная, что все умрут.
+      </p>
+      <p>
+        А Николь? Её «лидерство» — это <span class="critical">роль в спектакле</span>.
+      </p>
+    </div>
+
+    <!-- Section 7: Маркетинговая функция -->
+    <h2 class="section-title">7. Николь как главный товар ZZZ</h2>
+    <div class="section-content">
+      <p>
+        Николь — лицо Zenless Zone Zero. Почему?
+      </p>
+      <p>
+        Потому что она — <span class="highlight">идеальный продукт для монетизации</span>:
+        <ul>
+          <li>Привлекает фанатов «сильных женщин» (на словах)</li>
+          <li>Привлекает фанатов сексуализированных персонажей (на деле)</li>
+          <li>Стимулирует покупки гачи через фетиш «властной женщины»</li>
+        </ul>
+      </p>
+      <p>
+        Это не персонаж. Это <span class="critical">главный актив HoYoverse в ZZZ</span>.
+      </p>
+    </div>
+
+    <!-- Section 8: Фан-реакция -->
+    <h2 class="section-title">8. Фанаты: от обожания до осознания</h2>
+    <div class="section-content">
+      <p>
+        Сначала: «О, она такая крутая!»  
+        Потом: «Почему у неё нет арки?»  
+        Потом: «Почему она ничего не говорит о своих мотивах?»  
+        Потом: «Она вообще существует вне боёв?»
+      </p>
+      <p>
+        Ответ: <span class="critical">нет</span>. Потому что ей не нужно существовать. Ей нужно <span class="highlight">продаваться</span>.
+      </p>
+    </div>
+
+    <!-- Section 9: Абсурдность образа -->
+    <h2 class="section-title">9. Абсурд: «лидер» в юбке до бедра</h2>
+    <div class="section-content">
+      <p>
+        Представь: ты командир отряда в постапокалипсисе.  
+        Что ты наденешь? Тактический костюм? Бронежилет?  
+        Нет. Ты наденешь <span class="critical">короткую юбку, чулки и глубокий вырез</span>, потому что… харизма?
+      </p>
+      <p>
+        Это не реализм. Это абсурд. Но абсурд, который <span class="highlight">приносит миллионы</span>.
+      </p>
+    </div>
+
+    <!-- Section 10: Заключение -->
+    <h2 class="section-title">10. Итог: зачем она нужна?</h2>
+    <div class="section-content">
+      <p>
+        Николь не раскрывает сюжет ZZZ.  
+        Она не влияет на других персонажей.  
+        Она не вызывает настоящих эмоций — только поверхностное возбуждение.
+      </p>
+      <p>
+        Её существование оправдано только одним: <span class="critical">манипуляцией, фетишизацией и прибылью</span>.
+      </p>
+    </div>
+
+    <!-- Verdict -->
+    <div class="verdict-box">
+      <h3>Вердикт Fielsdown</h3>
+      <p>
+        <strong>Николь Демара — не лидер. Это сознательно созданный король Rule 34, замаскированный под «сильную женщину».</strong>
+      </p>
+      <p>
+        Её «власть» — не авторитет. Это <span class="critical">маркетинговый приём</span>.  
+        Её «уверенность» — не сила. Это <span class="critical">приманка для фантазий</span>.
+      </p>
+      <p>
+        Она не плохой человек. Она <span class="critical">не человек вообще</span>.
+      </p>
+      <p>
+        Она — <span class="highlight">главный товар Zenless Zone Zero</span>.
+      </p>
+      <p>
+        И да — она <span class="critical">пустая оболочка в юбке и чулках</span>.  
+        Потому что за «лидерством» — ничего. За «огнём» — тишина. За «харизмой» — расчёт.
+      </p>
+      <p>
+        Николь Демара — не ошибка. Это <span class="highlight">система</span>.  
+        И в этом её самая большая проблема.
+      </p>
+    </div>
+
+  </main>
+
+  <footer>
+    <p>© 2025 Fielsdown — Правда без прикрас</p>
+    <a href="../../index.html" class="back-link">← Вернуться на главную</a>
+  </footer>
+
+  <script>
+    // Fielsdown v3.5 — Николь Демара: лидерство как фетиш, власть как товар.
+  </script>
+
+</body>
+</html>
