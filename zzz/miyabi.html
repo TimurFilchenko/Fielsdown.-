@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Мияби — Fielsdown</title>
+  <style>
+    /* =============
+       RESET & BASE
+       ============= */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: #0a0a0a;
+      color: #e8e8e8;
+      font-family: 'Segoe UI', 'Courier New', monospace;
+      line-height: 1.75;
+      font-size: 16px;
+      padding: 20px;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(30, 0, 0, 0.25) 0%, transparent 25%),
+        radial-gradient(circle at 90% 80%, rgba(50, 0, 0, 0.2) 0%, transparent 30%);
+    }
+
+    a {
+      color: #ff5555;
+      text-decoration: none;
+      border-bottom: 1px dotted #ff5555;
+    }
+
+    a:hover {
+      color: #ff8888;
+      text-decoration: none;
+    }
+
+    /* =============
+       HEADER
+       ============= */
+    header {
+      max-width: 950px;
+      margin: 0 auto 40px;
+      text-align: center;
+      padding: 30px 20px;
+      border-bottom: 2px solid #ff3333;
+    }
+
+    .site-title {
+      font-size: 2.8rem;
+      color: #ff3333;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      margin-bottom: 10px;
+      font-weight: 900;
+    }
+
+    .subtitle {
+      font-size: 1.25rem;
+      color: #bbb;
+      margin-bottom: 20px;
+      font-style: italic;
+    }
+
+    .warning-box {
+      background: #1a0505;
+      border: 1px solid #ff4444;
+      border-radius: 6px;
+      padding: 25px;
+      margin: 25px auto;
+      max-width: 900px;
+      font-size: 0.98rem;
+      line-height: 1.7;
+    }
+
+    .warning-box strong {
+      color: #ff6666;
+    }
+
+    .warning-box code {
+      background: #220000;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+
+    /* =============
+       MAIN CONTENT
+       ============= */
+    .review-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #121212;
+      padding: 40px;
+      border: 1px solid #333;
+      border-radius: 8px;
+      box-shadow: 0 0 25px rgba(255, 50, 50, 0.1);
+    }
+
+    /* CHARACTER HEADER WITH AVATAR */
+    .character-header {
+      text-align: center;
+      margin-bottom: 35px;
+      padding-bottom: 25px;
+      border-bottom: 1px dashed #444;
+    }
+
+    .avatar-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .character-avatar {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      border: 2px solid #ff5555;
+      box-shadow: 0 0 25px rgba(255, 85, 85, 0.6);
+      background: #1a1a1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s ease;
+    }
+
+    .character-avatar:hover {
+      transform: scale(1.05);
+    }
+
+    .character-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    .character-name {
+      font-size: 2.6rem;
+      color: #ff6666;
+      margin-bottom: 12px;
+    }
+
+    .game-tag {
+      display: inline-block;
+      background: #222;
+      color: #ff9999;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.95rem;
+      letter-spacing: 1px;
+      margin-bottom: 20px;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .tag {
+      background: #330000;
+      color: #ff8888;
+      padding: 7px 16px;
+      border-radius: 20px;
+      font-size: 0.95rem;
+      font-family: monospace;
+    }
+
+    .section-title {
+      font-size: 1.7rem;
+      color: #ff7777;
+      margin: 35px 0 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #333;
+    }
+
+    .section-content p {
+      margin-bottom: 20px;
+      font-size: 1.08rem;
+    }
+
+    .section-content ul, .section-content ol {
+      margin: 20px 0 25px 30px;
+      line-height: 1.8;
+    }
+
+    .section-content li {
+      margin-bottom: 14px;
+    }
+
+    .quote {
+      font-style: italic;
+      color: #ddd;
+      border-left: 4px solid #ff5555;
+      padding: 18px 25px;
+      margin: 25px 0;
+      background: #1a1a1a;
+      border-radius: 0 8px 8px 0;
+      font-size: 1.1rem;
+    }
+
+    .verdict-box {
+      background: #200505;
+      border: 1px dashed #ff5555;
+      padding: 30px;
+      margin-top: 40px;
+      font-size: 1.15rem;
+      line-height: 1.8;
+    }
+
+    .verdict-box h3 {
+      color: #ff6666;
+      margin-bottom: 20px;
+      font-size: 1.6rem;
+    }
+
+    /* TABLE STYLES */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 25px 0;
+      background: #151515;
+    }
+
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #333;
+    }
+
+    th {
+      background: #220000;
+      color: #ff8888;
+      font-weight: bold;
+    }
+
+    tr:hover {
+      background: #1a1a1a;
+    }
+
+    /* HIGHLIGHTS */
+    .highlight {
+      color: #ff9999;
+      font-weight: bold;
+    }
+
+    .critical {
+      color: #ff4444;
+      font-weight: bold;
+    }
+
+    .fade {
+      opacity: 0.75;
+    }
+
+    .note {
+      background: #0f1f1f;
+      padding: 15px;
+      border-left: 3px solid #55aa55;
+      margin: 20px 0;
+      font-style: italic;
+    }
+
+    /* FOOTER */
+    footer {
+      text-align: center;
+      margin-top: 60px;
+      padding-top: 25px;
+      color: #666;
+      font-size: 0.95rem;
+      border-top: 1px solid #222;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 18px;
+      color: #ff7777;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      body {
+        padding: 15px;
+        font-size: 15px;
+      }
+      .review-container {
+        padding: 25px 20px;
+      }
+      .character-name {
+        font-size: 2.1rem;
+      }
+      .character-avatar {
+        width: 120px;
+        height: 120px;
+      }
+      .section-title {
+        font-size: 1.5rem;
+      }
+      table, th, td {
+        font-size: 0.9rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .site-title {
+        font-size: 2rem;
+      }
+      .character-name {
+        font-size: 1.9rem;
+      }
+      .character-avatar {
+        width: 100px;
+        height: 100px;
+      }
+      .warning-box {
+        padding: 18px;
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="site-title">Fielsdown</div>
+    <div class="subtitle">Герои падают здесь первыми</div>
+
+    <div class="warning-box">
+      <strong>ВНИМАНИЕ:</strong> Этот сайт содержит жёсткую, саркастичную и грубую критику персонажей из анимешных игр. Мы не ненавидим — мы вскрываем. Если вы верите, что «короткая юбка + катана = глубина», или что «она тихая, значит, загадочная» — <strong>вам не сюда</strong>.<br><br>
+      Контент предназначен для взрослых. Автор не несёт ответственности за разрушенные иллюзии, сломанные фетиши или внезапное осознание, что ваш «любимый персонаж» — просто <code>маркетинговый продукт</code>.
+    </div>
+  </header>
+
+  <main class="review-container">
+
+    <div class="character-header">
+      <div class="avatar-container">
+        <div class="character-avatar">
+          <img 
+            src="https://i.redd.it/e3dg9akgdr2f1.jpeg" 
+            onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNDUiIGZpbGw9IiMxYTEyMTIiIHN0cm9rZT0iI2ZmNTU1NSIgc3Ryb2tlLXdpZHRoPSIyIi8+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iMzAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmNTU1NSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9zdmc+';"
+          >
+        </div>
+      </div>
+
+      <h1 class="character-name">Мияби</h1>
+      <div class="game-tag">Zenless Zone Zero</div>
+
+      <div class="tags">
+        <span class="tag">Rule 34 до сюжета</span>
+        <span class="tag">Самурайский мусор</span>
+        <span class="tag">Без логистики</span>
+        <span class="tag">Фетиш-пакет</span>
+        <span class="tag">Пустой трофей</span>
+        <span class="tag">Гача-кукла</span>
+      </div>
+    </div>
+
+    <!-- Section 1: Внешность -->
+    <h2 class="section-title">1. Внешность: «Самурайка» или готовый шаблон для хентая?</h2>
+    <div class="section-content">
+      <p>
+        Давайте начистоту: Мияби выглядит так, будто её создавали не для игры, а для <span class="highlight">Rule 34-сообщества</span>. 
+        У неё есть все «ингредиенты»: катана, традиционный узел на голове, чулки с подвязками, короткая юбка, открытый живот и поза «случайно наклонилась» в каждом официальном арте.
+      </p>
+      <p>
+        Это не «современная интерпретация самурая». Это <span class="highlight">фетишизированный костюм</span>, приклеенный к модели. 
+        Настоящий самурай (даже в аниме) никогда бы не носил такую экипировку — не из «традиции», а потому что в бою это <span class="critical">смертельно глупо</span>.
+      </p>
+      <p>
+        Но логика? Зачем? Главное — чтобы в первые 24 часа после анонса её уже рисовали в хентаях. И это сработало. Отлично. Цинично. Но сработало.
+      </p>
+      <p>
+        Взгляните на её официальный промо-арт: ноги в чулках, юбка едва прикрывает бёдра, поза — будто она только что упала на колени. Это не «стиль». Это <span class="highlight">визуальный триггер</span> для фетишизации. 
+        HoYoverse не просто допускает сексуализацию — они её <span class="critical">проектируют</span>.
+      </p>
+    </div>
+
+    <!-- Section 2: Характер и мотивация -->
+    <h2 class="section-title">2. Характер: «Я верна долгу» — и всё?</h2>
+    <div class="section-content">
+      <p>
+        Её мотивация? «Служить».  
+        Её конфликт? «Иногда сомневаюсь».  
+        Её развитие? <span class="critical">Нет.</span>
+      </p>
+      <p>
+        Она говорит фразы вроде: <span class="quote">«Путь воина — в послушании»</span>, но при этом:
+      </p>
+      <ul>
+        <li>Работает на частную корпорацию (Hollow Special Operations),</li>
+        <li>Убивает монстров за деньги,</li>
+        <li>Не задаёт вопросов о морали своих заказчиков.</li>
+      </ul>
+      <p>
+        Где тут «долг»? Где кодекс? Где внутренняя борьба? <span class="critical">Нигде.</span>  
+        Это не «сложный персонаж». Это <span class="highlight">говорящий манекен в кимоно-мини</span>, который повторяет тропы, потому что «так надо для образа».
+      </p>
+      <p>
+        В сюжете ZZZ Миаби появляется как «сильный агент», но её действия не влияют на повороты сюжета. Она не принимает решений. Она не спорит. Она просто <span class="highlight">стоит рядом и кивает</span>. 
+        Это не персонаж. Это <span class="critical">фоновая фигура с катаной</span>.
+      </p>
+    </div>
+
+    <!-- Section 3: Историческая и культурная несостоятельность -->
+    <h2 class="section-title">3. Самурай? Серьёзно?</h2>
+    <div class="section-content">
+      <p>
+        HoYoverse называет Миаби «современной самурайкой». Но давайте сравним:
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Настоящий самурай</th>
+            <th>Мияби (ZZZ)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Следовал кодексу Бусидо: честь, верность, самопожертвование</td>
+            <td>Следует приказам корпорации за деньги</td>
+          </tr>
+          <tr>
+            <td>Носил доспехи, закрывающие всё тело</td>
+            <td>Носит юбку до бедра и чулки</td>
+          </tr>
+          <tr>
+            <td>Катана — символ души, а не аксессуар</td>
+            <td>Катана — визуальный тренд для «крутости»</td>
+          </tr>
+          <tr>
+            <td>Обучался десятилетиями</td>
+            <td>«Обучена» — без деталей</td>
+          </tr>
+          <tr>
+            <td>Честь выше жизни</td>
+            <td>Жизнь — инструмент для выполнения заказов</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        Миаби — не самурай. Это <span class="critical">карикатура на самурая</span>, созданная для западного потребителя, который думает, что «японский = катана + чулки».
+      </p>
+      <p>
+        Это не уважение к культуре. Это её <span class="highlight">упрощение до уровня косплея</span>.
+      </p>
+    </div>
+
+    <!-- Section 4: Сексуализация -->
+    <h2 class="section-title">4. Сексуализация под прикрытием «невинности»</h2>
+    <div class="section-content">
+      <p>
+        Миаби — «робкая», «тихая», «послушная». Но камера в кат-сценах почему-то постоянно скользит по её ногам, чулкам, талии.  
+        Её позы — не нейтральные, а <span class="highlight">вызывающе пассивные</span>: наклоны, прикосновения к лицу, опущенный взгляд.
+      </p>
+      <p>
+        Это классический приём: <span class="highlight">сексуализация через «невинность»</span>.  
+        Девушка «ничего не хочет», но её тело — объект желания. Это не уважение. Это манипуляция.
+      </p>
+      <p>
+        И да — в официальном арте от HoYoverse она стоит в позе, будто её только что вытащили из хентая.  
+        Это не совпадение. Это <span class="critical">маркетинг</span>.
+      </p>
+      <div class="note">
+        Примечание: «Робкость» как черта персонажа не плоха сама по себе. Но когда она сочетается с откровенным дизайном и позами, ориентированными на зрительское желание — это становится инструментом фетишизации, а не характера.
+      </div>
+    </div>
+
+    <!-- Section 5: Rule 34 — не побочный эффект, а цель -->
+    <h2 class="section-title">5. Rule 34 — не побочный эффект, а цель</h2>
+    <div class="section-content">
+      <p>
+        Персонажи вроде Миаби создаются не для сюжета. Они создаются для <span class="highlight">монетизации фетишей</span>.
+      </p>
+      <p>
+        HoYoverse знает: чем «тише» персонаж, чем «невиннее» её образ, тем сильнее контраст с её сексуализированным дизайном — и тем острее фетиш.  
+        А острый фетиш = больше фан-артов = больше хайпа = больше продаж гачи.
+      </p>
+      <p>
+        Rule 34 — это не «плохие фанаты». Это <span class="critical">предсказуемый результат дизайнерских решений</span>.  
+        Если ты делаешь персонажа, который выглядит как фетиш-объект, не удивляйся, что его так и воспримут.
+      </p>
+      <p>
+        Миаби попала в Rule 34 <span class="highlight">до релиза игры</span>. Это не «популярность». Это <span class="critical">прямое следствие её дизайна</span>.
+      </p>
+    </div>
+
+    <!-- Section 6: Геймплейная роль и полезность -->
+    <h2 class="section-title">6. Геймплей: «сильная», но зачем?</h2>
+    <div class="section-content">
+      <p>
+        В бою Миаби — типичный DPS с элементом «Ice». Ничего уникального. Ничего запоминающегося.  
+        Её ультимейт — красивая анимация с катаной. Но механика? Стандартная.
+      </p>
+      <p>
+        Она не решает уникальных проблем в сборке. Не даёт контроля. Не усиливает команду.  
+        Она просто <span class="highlight">наносит урон</span> — как 20 других персонажей.
+      </p>
+      <p>
+        Её «уникальность» — только в визуале. А визуал создан не для игры, а для <span class="critical">продажи</span>.
+      </p>
+    </div>
+
+    <!-- Section 7: Фан-реакция и культурный след -->
+    <h2 class="section-title">7. Фанаты: от обожания до осознания</h2>
+    <div class="section-content">
+      <p>
+        На момент релиза Миаби стала «любимчиком» сообщества — не за характер, не за сюжет, а за <span class="highlight">внешность</span>.
+      </p>
+      <p>
+        Фан-арты, косплей, мерч — всё это пошло в ход <span class="critical">до того</span>, как игроки узнали хоть что-то о ней как о персонаже.
+      </p>
+      <p>
+        Но со временем начали появляться вопросы:  
+        — «Почему она ничего не говорит?»  
+        — «Почему у неё нет арки?»  
+        — «Почему она как будто не существует вне боёв?»
+      </p>
+      <p>
+        Ответ прост: <span class="critical">ей не нужно существовать</span>. Её задача — быть красивой, продаваться и исчезать в фоне.
+      </p>
+    </div>
+
+    <!-- Section 8: Сравнение с другими персонажами ZZZ -->
+    <h2 class="section-title">8. В сравнении: Миаби vs другие агенты</h2>
+    <div class="section-content">
+      <p>
+        Возьмём Николь: у неё есть прошлое, конфликт, лидерские качества, ошибки.  
+        Возьмём Билли: у него есть юмор, харизма, мотивация, даже если он «лёгкий парень».
+      </p>
+      <p>
+        А Миаби? У неё есть <span class="critical">катана и чулки</span>.  
+        В то время как другие персонажи имеют хотя бы зачатки развития, Миаби остаётся статичной — потому что её <span class="highlight">не задумывали как полноценного человека</span>.
+      </p>
+      <p>
+        Она — не персонаж. Она — <span class="critical">эстетический аксессуар</span> для игры.
+      </p>
+    </div>
+
+    <!-- Section 9: Маркетинговая функция -->
+    <h2 class="section-title">9. Миаби как товар</h2>
+    <div class="section-content">
+      <p>
+        Вся её роль в Zenless Zone Zero — <span class="highlight">привлечь определённую аудиторию</span>:  
+        — любителей «тихих девочек»,  
+        — фетиша «самурая»,  
+        — коллекционеров гачи.
+      </p>
+      <p>
+        Её не писали сценаристы. Её <span class="critical">собрали маркетологи</span> из популярных тропов.
+      </p>
+      <p>
+        И это работает. Люди тратят деньги на неё. Но не потому что она «глубокая».  
+        А потому что она <span class="highlight">вызывает желание</span> — и это желание легко монетизировать.
+      </p>
+    </div>
+
+    <!-- Section 10: Заключение -->
+    <h2 class="section-title">10. Итог: зачем она вообще нужна?</h2>
+    <div class="section-content">
+      <p>
+        Миаби не добавляет ничего в сюжет ZZZ.  
+        Она не раскрывает темы игры.  
+        Она не влияет на других персонажей.  
+        Она не вызывает эмоций, кроме поверхностного «вау, какая красивая».
+      </p>
+      <p>
+        Её существование оправдано только одним: <span class="critical">прибылью</span>.
+      </p>
+      <p>
+        И в этом её главная трагедия — не как персонажа, а как символа того, как индустрия превращает людей (даже вымышленных) в <span class="highlight">продукты для потребления</span>.
+      </p>
+    </div>
+
+    <!-- Verdict -->
+    <div class="verdict-box">
+      <h3>Вердикт Fielsdown</h3>
+      <p>
+        <strong>Мияби — не самурай. Это маркетинговый продукт, замаскированный под персонажа.</strong>
+      </p>
+      <p>
+        Её «глубина» — это дымовая завеса из эстетики, за которой <span class="critical">абсолютная пустота</span>.
+      </p>
+      <p>
+        Она не плохой человек. Она <span class="critical">не человек вообще</span>.
+      </p>
+      <p>
+        Она — <span class="highlight">готовый шаблон для фан-арта, гачи-спинов и Rule 34</span>.
+      </p>
+      <p>
+        И да — она <span class="critical">самурайский мусор без логистики</span>.  
+        Потому что у неё нет логики, нет развития, нет даже базовой последовательности.
+      </p>
+      <p>
+        Только катана, чулки и фраза про «долг» — чтобы ты не чувствовал себя плохо, когда фетишизуешь её на следующий день после релиза.
+      </p>
+      <p>
+        Миаби — не ошибка. Это <span class="highlight">расчёт</span>.  
+        И в этом её самая большая проблема.
+      </p>
+    </div>
+
+  </main>
+
+  <footer>
+    <p>© 2025 Fielsdown — Правда без прикрас</p>
+    <a href="../../index.html" class="back-link">← Вернуться на главную</a>
+  </footer>
+
+  <script>
+    // Fielsdown v3.0 — аватарка работает везде. Текст — жёсткий. Стиль — огонь.
+  </script>
+
+</body>
+</html>
