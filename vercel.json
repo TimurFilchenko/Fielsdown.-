@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "name": "fielsdown-criticism",
+  "public": true,
+  "builds": [
+    { "src": "index.html", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "/$1" }
+  ],
+  "alias": ["fielsdown-criticism.vercel.app"]
+}
