@@ -3,10 +3,10 @@
   "name": "fielsdown-criticism",
   "public": true,
   "builds": [
-    { "src": "index.html", "use": "@vercel/static" }
+    { "src": "Fielsdown.-/**/*", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/(.*)", "dest": "/$1" }
+    { "src": "/(.*)", "dest": "/Fielsdown.-/$1" }
   ],
   "alias": ["fielsdown-criticism.vercel.app"]
 }
