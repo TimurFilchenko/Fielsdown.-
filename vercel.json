@@ -1,14 +1,16 @@
 {
   "version": 2,
-  "rewrites": [
-    { "source": "/about", "destination": "/about.html" }
-  ],
-  "headers": [
+  "routes": [
     {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "index, follow" }
-      ]
+      "src": "/about",
+      "dest": "/about.html"
+    },
+    {
+      "src": "/(.*)",
+      "headers": {
+        "X-Robots-Tag": "index, follow"
+      },
+      "dest": "/$1"
     }
   ]
 }
