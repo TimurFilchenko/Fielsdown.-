@@ -1,1 +1,24 @@
-
+{
+  "version": 3,
+  "rewrites": [
+    {
+      "source": "/about",
+      "destination": "/about.html"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/old-page",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "index, follow" }
+      ]
+    }
+  ]
+}
