@@ -10,3 +10,9 @@
   ],
   "alias": ["fielsdown-criticism.vercel.app"]
 }
+
+{
+  "rewrites": [
+    { "source": "/about", "destination": "/about.html" }
+  ]
+}
