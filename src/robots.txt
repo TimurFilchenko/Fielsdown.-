@@ -1,3 +1,0 @@
-User-agent: *
-Allow: /
-Sitemap: https://fielsdown-i7z9jdfmd-murasmarsbekov-1330s-projects.vercel.app/sitemap.xml
