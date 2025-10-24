@@ -1,17 +1,7 @@
 {
   "version": 3,
   "rewrites": [
-    {
-      "source": "/about",
-      "destination": "/about.html"
-    }
-  ],
-  "redirects": [
-    {
-      "source": "/old-page",
-      "destination": "/",
-      "permanent": true
-    }
+    { "source": "/about", "destination": "/about.html" }
   ],
   "headers": [
     {
