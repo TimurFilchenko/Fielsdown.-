@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Профиль — Fielsdown</title>
+  <link rel="icon" href="/public/favicon.ico" />
+  <style>
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #fafafa;
+      --bg-tertiary: #f5f5f5;
+      --text-primary: #121212;
+      --text-secondary: #666666;
+      --text-muted: #999999;
+      --accent: #0077ff;
+      --accent-hover: #005fcc;
+      --danger: #e53935;
+      --border: #e0e0e0;
+      --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      --card-radius: 16px;
+      --transition: all 0.24s cubic-bezier(0.33, 0, 0.67, 0.33);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    .back-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .profile-card {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 32px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .avatar-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .avatar-preview {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--border);
+      background: var(--bg-tertiary);
+      margin-bottom: 16px;
+      transition: var(--transition);
+    }
+
+    .avatar-preview:hover {
+      transform: scale(1.03);
+      border-color: var(--accent);
+    }
+
+    /* === НОВОЕ: кнопки смены аватарки === */
+    .avatar-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .avatar-btn {
+      padding: 8px 16px;
+      font-size: 14px;
+      border: 1px solid var(--border);
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .avatar-btn:hover {
+      background: var(--bg-tertiary);
+      border-color: var(--accent);
+    }
+
+    /* Скрытое файловое поле */
+    #avatar-file-input {
+      display: none;
+    }
+
+    /* Поля редактирования (URL) */
+    .edit-field {
+      display: none;
+      width: 100%;
+      max-width: 300px;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      margin-top: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .bio-display {
+      background: var(--bg-secondary);
+      padding: 12px 16px;
+      border-radius: 8px;
+      color: var(--text-primary);
+      white-space: pre-wrap;
+    }
+
+    .bio-edit {
+      display: none;
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 15px;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      transition: var(--transition);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 16px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 119, 255, 0.25);
+    }
+
+    .btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-secondary);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+      margin-top: 16px;
+    }
+
+    .btn-danger:hover {
+      background: #c62828;
+      transform: translateY(-1px);
+    }
+
+    .username-display {
+      font-size: 24px;
+      font-weight: 800;
+      margin: 12px 0;
+      color: var(--accent);
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+
+    .save-status {
+      height: 20px;
+      font-size: 14px;
+      color: var(--success);
+      margin-top: 8px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .save-status.show {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="/" class="back-link">← На главную</a>
+      <h1>Ваш профиль</h1>
+    </header>
+
+    <div class="profile-card">
+      <div class="avatar-section">
+        <img id="avatar-preview" class="avatar-preview" alt="Аватар" />
+        <!-- НОВОЕ: кнопки выбора аватарки -->
+        <div class="avatar-actions">
+          <button id="upload-btn" class="avatar-btn"> Загрузить из галереи</button>
+          <button id="url-btn" class="avatar-btn"> Вставить URL</button>
+        </div>
+        <!-- Скрытое поле для файла -->
+        <input type="file" id="avatar-file-input" accept="image/*" />
+        <!-- Поле для URL (скрыто по умолчанию) -->
+        <input
+          type="url"
+          id="avatar-url-input"
+          class="edit-field"
+          placeholder="https://example.com/avatar.jpg"
+        />
+      </div>
+
+      <div class="username-display" id="username-display">b/...</div>
+
+      <div class="form-group">
+        <label>О себе</label>
+        <div id="bio-display" class="bio-display">Загрузка...</div>
+        <textarea
+          id="bio-edit"
+          class="bio-edit"
+          rows="3"
+          placeholder="Расскажите о себе..."
+        ></textarea>
+      </div>
+
+      <div class="actions">
+        <button id="edit-btn" class="btn btn-secondary"> Редактировать профиль</button>
+        <button id="save-btn" class="btn btn-primary" style="display: none;"> Сохранить</button>
+        <button id="cancel-btn" class="btn btn-secondary" style="display: none;">Отмена</button>
+      </div>
+
+      <div id="save-status" class="save-status"> Сохранено!</div>
+
+      <button id="logout-btn" class="btn btn-danger">Выйти из аккаунта</button>
+    </div>
+  </div>
+
+  <script>
+    const SESSION_KEY = 'fielsdown_session_v1';
+    const DEFAULT_AVATAR = 'https://static.cdninstagram.com/rsrc.php/v3/yo/r/qhYsMwhQJy-.png';
+
+    function getSession() {
+      const raw = localStorage.getItem(SESSION_KEY);
+      if (!raw) return null;
+      try {
+        return JSON.parse(raw);
+      } catch (e) {
+        localStorage.removeItem(SESSION_KEY);
+        return null;
+      }
+    }
+
+    function saveSession(data) {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(data));
+    }
+
+    function isValidUrl(str) {
+      try {
+        new URL(str);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    // Преобразует File в Data URL (base64)
+    function fileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const session = getSession();
+      if (!session || !session.isLoggedIn) {
+        alert('Вы не вошли в аккаунт!');
+        window.location.href = '/login.html';
+        return;
+      }
+
+      // DOM элементы
+      const avatarPreview = document.getElementById('avatar-preview');
+      const avatarFileInput = document.getElementById('avatar-file-input');
+      const avatarUrlInput = document.getElementById('avatar-url-input');
+      const uploadBtn = document.getElementById('upload-btn');
+      const urlBtn = document.getElementById('url-btn');
+      const usernameDisplay = document.getElementById('username-display');
+      const bioDisplay = document.getElementById('bio-display');
+      const bioEdit = document.getElementById('bio-edit');
+      const editBtn = document.getElementById('edit-btn');
+      const saveBtn = document.getElementById('save-btn');
+      const cancelBtn = document.getElementById('cancel-btn');
+      const saveStatus = document.getElementById('save-status');
+      const logoutBtn = document.getElementById('logout-btn');
+
+      // Загрузка данных
+      let currentAvatar = session.avatar || DEFAULT_AVATAR;
+      const username = session.username || 'user';
+      let currentBio = session.bio || 'Пока ничего не написал(а).';
+
+      avatarPreview.src = currentAvatar;
+      usernameDisplay.textContent = `b/${username}`;
+      bioDisplay.textContent = currentBio;
+
+      avatarPreview.onerror = () => {
+        avatarPreview.src = DEFAULT_AVATAR;
+        currentAvatar = DEFAULT_AVATAR;
+      };
+
+      // === НОВОЕ: ЗАГРУЗКА ИЗ ГАЛЕРЕИ ===
+      uploadBtn.addEventListener('click', () => {
+        avatarFileInput.click();
+      });
+
+      avatarFileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+          alert('Выберите изображение (JPG, PNG, GIF и т.д.)');
+          return;
+        }
+
+        try {
+          const dataUrl = await fileToDataUrl(file);
+          avatarPreview.src = dataUrl;
+          currentAvatar = dataUrl; // сохранится как base64
+          avatarUrlInput.style.display = 'none'; // скрываем URL-поле
+        } catch (err) {
+          alert('Не удалось загрузить изображение.');
+          console.error(err);
+        }
+      });
+
+      // === НОВОЕ: ВСТАВКА ПО URL ===
+      urlBtn.addEventListener('click', () => {
+        avatarUrlInput.style.display = 'block';
+        avatarUrlInput.value = currentAvatar.startsWith('data:') ? '' : currentAvatar;
+        avatarUrlInput.focus();
+      });
+
+      avatarUrlInput.addEventListener('blur', () => {
+        const url = avatarUrlInput.value.trim();
+        if (url && isValidUrl(url)) {
+          avatarPreview.src = url;
+          currentAvatar = url;
+          avatarUrlInput.style.display = 'none';
+        } else if (url) {
+          alert('Неверный URL изображения.');
+          avatarUrlInput.style.display = 'none';
+        } else {
+          avatarUrlInput.style.display = 'none';
+        }
+      });
+
+      // === РЕДАКТИРОВАНИЕ ПРОФИЛЯ (старая логика — сохранена) ===
+      editBtn.addEventListener('click', () => {
+        bioEdit.value = currentBio;
+        bioDisplay.style.display = 'none';
+        bioEdit.style.display = 'block';
+        editBtn.style.display = 'none';
+        saveBtn.style.display = 'inline-flex';
+        cancelBtn.style.display = 'inline-flex';
+      });
+
+      cancelBtn.addEventListener('click', () => {
+        bioDisplay.style.display = 'block';
+        bioEdit.style.display = 'none';
+        editBtn.style.display = 'inline-flex';
+        saveBtn.style.display = 'none';
+        cancelBtn.style.display = 'none';
+        avatarUrlInput.style.display = 'none';
+      });
+
+      saveBtn.addEventListener('click', () => {
+        currentBio = bioEdit.value.trim();
+
+        const updatedSession = {
+          ...session,
+          avatar: currentAvatar,
+          bio: currentBio,
+          updatedAt: new Date().toISOString()
+        };
+        saveSession(updatedSession);
+
+        bioDisplay.textContent = currentBio || 'Пока ничего не написал(а).';
+        bioDisplay.style.display = 'block';
+        bioEdit.style.display = 'none';
+        editBtn.style.display = 'inline-flex';
+        saveBtn.style.display = 'none';
+        cancelBtn.style.display = 'none';
+        avatarUrlInput.style.display = 'none';
+
+        saveStatus.classList.add('show');
+        setTimeout(() => saveStatus.classList.remove('show'), 2000);
+      });
+
+      logoutBtn.addEventListener('click', () => {
+        if (confirm('Выйти из аккаунта?')) {
+          localStorage.removeItem(SESSION_KEY);
+          window.location.href = '/';
+        }
+      });
+    });
+  </script>
+</body>
+  </html>
