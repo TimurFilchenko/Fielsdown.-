@@ -167,26 +167,102 @@
 
   <!-- Подключение comments.js -->
   <script src="/js/comments.js"></script>
-  <script>
-  // Авто-вставка ника при ответе на комментарий
+<script>
+  // === УЛУЧШЕННАЯ СИСТЕМА ОТВЕТОВ С КЛИКАБЕЛЬНЫМИ НИКАМИ ===
+
+  // 1. Авто-вставка @ник при ответе
   document.addEventListener('click', function(e) {
-    // Ловим клик по кнопке "ответить"
     if (e.target.classList.contains('reply-btn')) {
       const commentId = e.target.getAttribute('data-id');
-      const authorElement = e.target.closest('.comment').querySelector('.comment-author');
+      const commentCard = e.target.closest('.comment');
+      const authorElement = commentCard.querySelector('.comment-author');
       const authorName = authorElement ? authorElement.textContent.trim() : 'anonymous';
       
-      // Ждём, пока форма появится
       setTimeout(() => {
         const replyTextarea = document.getElementById(`reply-text-${commentId}`);
-        if (replyTextarea) {
+        if (replyTextarea && !replyTextarea.value.startsWith('@')) {
           replyTextarea.value = `@${authorName} `;
           replyTextarea.focus();
+          // Ставим курсор в конец
+          const val = replyTextarea.value;
+          replyTextarea.setSelectionRange(val.length, val.length);
         }
-      }, 100);
+      }, 150);
     }
   });
-  </script>
+
+  // 2. Преобразование @ник в кликабельные ссылки при отображении
+  function parseMentionsInComments() {
+    document.querySelectorAll('.comment-content').forEach(contentEl => {
+      if (contentEl.dataset.parsed) return; // Уже обработано
+      
+      const text = contentEl.innerHTML;
+      // Ищем @b/username (с возможными символами после)
+      const mentionRegex = /@([b\/][a-zA-Z0-9_]+)/g;
+      const newText = text.replace(mentionRegex, (match, username) => {
+        // Убираем "b/" из ссылки, если нужно (но сохраняем в отображении)
+        const cleanName = username.replace('b/', '');
+        return `<a href="/profile.html?user=${encodeURIComponent(cleanName)}" class="mention-link">@${username}</a>`;
+      });
+      
+      if (newText !== text) {
+        contentEl.innerHTML = newText;
+        contentEl.dataset.parsed = 'true';
+      }
+    });
+  }
+
+  // 3. Стили для упоминаний
+  (function injectMentionStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+      .mention-link {
+        color: #0077ff !important;
+        text-decoration: none;
+        font-weight: 600;
+        border-bottom: 1px dotted #0077ff;
+        padding: 0 2px;
+        border-radius: 2px;
+      }
+      .mention-link:hover {
+        background-color: rgba(0, 119, 255, 0.05);
+        text-decoration: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+  })();
+
+  // 4. Обработка новых комментариев (после отправки)
+  const originalInit = window.FielsdownComments?.init;
+  if (originalInit) {
+    window.FielsdownComments.init = function(...args) {
+      const result = originalInit.apply(this, args);
+      // Запускаем парсинг после загрузки комментариев
+      setTimeout(parseMentionsInComments, 300);
+      return result;
+    };
+  }
+
+  // 5. Также парсим при динамическом добавлении (например, после отправки)
+  const observer = new MutationObserver((mutations) => {
+    let needsParse = false;
+    for (const mut of mutations) {
+      if (mut.type === 'childList' && mut.addedNodes.length > 0) {
+        needsParse = true;
+        break;
+      }
+    }
+    if (needsParse) {
+      setTimeout(parseMentionsInComments, 100);
+    }
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  // Первичная обработка (на случай, если комментарии уже есть)
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(parseMentionsInComments, 500);
+  });
+</script>
   <script>
     // Получаем имя доски из URL
     const urlParams = new URLSearchParams(window.location.search);
