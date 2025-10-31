@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Регистрация — Fielsdown</title>
+  <link rel="stylesheet" href="/css/globals.css" />
+  <link rel="icon" href="/public/favicon.ico" />
+  <style>
+    /* === Специфичные стили для регистрации === */
+    .auth-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 460px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 32px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .auth-title {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, var(--accent), #00b0ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .auth-subtitle {
+      color: var(--text-muted);
+      margin-bottom: 28px;
+      font-size: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 15px;
+    }
+
+    .input-with-button {
+      display: flex;
+      gap: 10px;
+    }
+
+    .input-with-button input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 15px;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      transition: var(--transition);
+    }
+
+    .input-with-button input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0, 119, 255, 0.15);
+    }
+
+    .input-with-button input:read-only {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      cursor: text;
+    }
+
+    .btn-inline {
+      padding: 12px 14px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn-inline:hover {
+      background: var(--bg-secondary);
+      transform: translateY(-1px);
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 15px;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      transition: var(--transition);
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0, 119, 255, 0.15);
+    }
+
+    input[type="text"]:read-only {
+      background: var(--bg-tertiary);
+      cursor: text;
+    }
+
+    .error-message {
+      color: var(--danger);
+      font-size: 13px;
+      margin-top: 6px;
+      min-height: 16px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      transition: var(--transition);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 119, 255, 0.25);
+    }
+
+    .auth-footer {
+      text-align: center;
+      margin-top: 24px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .auth-footer a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .auth-footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Адаптив */
+    @media (max-width: 600px) {
+      .auth-card {
+        padding: 24px;
+      }
+      .input-with-button {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container auth-container">
+    <div class="auth-card">
+      <h1 class="auth-title">Создать аккаунт</h1>
+      <p class="auth-subtitle">Просто. Без email. Навсегда.</p>
+
+      <form id="register-form" novalidate>
+        <!-- Username -->
+        <div class="form-group">
+          <label for="username">Никнейм</label>
+          <div class="input-with-button">
+            <input
+              type="text"
+              id="username"
+              name="username"
+              autocomplete="off"
+              placeholder="Введите или сгенерируйте ник"
+              minlength="3"
+              maxlength="20"
+              pattern="[a-zA-Z0-9_]+"
+            />
+            <button type="button" id="generate-nick" class="btn-inline">🎲 Случайный</button>
+          </div>
+          <div class="error-message" id="username-error"></div>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label for="password">Пароль</label>
+          <div class="input-with-button">
+            <input
+              type="text"
+              id="password"
+              name="password"
+              autocomplete="off"
+              placeholder="Нажмите 🎲 для генерации"
+              readonly
+            />
+            <button type="button" id="generate-pass" class="btn-inline">🎲</button>
+          </div>
+          <div class="error-message" id="password-error"></div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-group">
+          <label for="confirm-password">Повторите пароль</label>
+          <input
+            type="text"
+            id="confirm-password"
+            name="confirm-password"
+            autocomplete="off"
+            placeholder="Вставьте тот же пароль"
+            readonly
+          />
+          <div class="error-message" id="confirm-error"></div>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="btn-primary">Зарегистрироваться</button>
+      </form>
+
+      <div class="auth-footer">
+        <p>Уже есть аккаунт? <a href="/login.html">Войти</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/auth.js"></script>
+</body>
+              </html>
