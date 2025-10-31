@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>b/... — Fielsdown</title>
+  <link rel="icon" href="/public/favicon.ico" />
+  <style>
+    /* =============================================================================
+       BOARD.HTML — СТИЛИ
+       Белая тема, премиум-интерфейс, без эмодзи
+       ============================================================================= */
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #fafafa;
+      --bg-tertiary: #f5f5f5;
+      --text-primary: #121212;
+      --text-secondary: #666666;
+      --text-muted: #999999;
+      --accent: #0077ff;
+      --border: #e0e0e0;
+      --card-radius: 12px;
+      --transition: all 0.24s cubic-bezier(0.33, 0, 0.67, 0.33);
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      padding: 16px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .board-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .board-title span {
+      color: var(--text-primary);
+    }
+
+    .back-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    /* === Пост === */
+    .post-card {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 24px;
+      margin-bottom: 32px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .post-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .post-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: var(--bg-tertiary);
+    }
+
+    .post-author {
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .post-time {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-left: auto;
+    }
+
+    .post-content {
+      font-size: 16px;
+      white-space: pre-wrap;
+      margin-bottom: 20px;
+    }
+
+    /* === Комментарии === */
+    .comments-section {
+      margin-top: 40px;
+    }
+
+    .comments-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .comment-icon {
+      font-size: 18px;
+      color: var(--accent);
+    }
+
+    .comment-form {
+      background: var(--bg-secondary);
+      border-radius: var(--card-radius);
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 15px;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+    }
+
+    textarea.form-control {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn:hover {
+      background: #005fcc;
+      transform: translateY(-1px);
+    }
+
+    /* === Отдельный комментарий === */
+    .comment {
+      background: var(--bg-secondary);
+      border-radius: var(--card-radius);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .comment-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .comment-author {
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .comment-time {
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .comment-content {
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .no-comments {
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 20px 0;
+    }
+
+    .error {
+      color: #e53935;
+      font-size: 14px;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 600px) {
+      .post-header, .comment-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .post-time, .comment-time {
+        margin-left: 0;
+        margin-top: 6px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1 class="board-title">b/<span id="board-name">...</span></h1>
+      <a href="/" class="back-link">← Все доски</a>
+    </header>
+
+    <!-- Пост (заглушка, в будущем — динамический) -->
+    <div class="post-card">
+      <div class="post-header">
+        <img src="https://static.cdninstagram.com/rsrc.php/v3/yo/r/qhYsMwhQJy-.png" class="post-avatar" alt="Аватар">
+        <span class="post-author" id="post-author">b/anonymous</span>
+        <span class="post-time" id="post-time">—</span>
+      </div>
+      <div class="post-content" id="post-content">
+        Загрузка поста...
+      </div>
+    </div>
+
+    <!-- Комментарии -->
+    <div class="comments-section">
+      <div class="comments-header">
+        <span class="comment-icon">комментарий</span>
+        <span>Комментарии</span>
+      </div>
+
+      <div class="comment-form">
+        <form id="commentForm">
+          <div class="form-group">
+            <textarea
+              id="commentContent"
+              class="form-control"
+              placeholder="Напишите комментарий..."
+              maxlength="500"
+            ></textarea>
+            <div class="error" id="commentError"></div>
+          </div>
+          <button type="submit" class="btn">Оставить комментарий</button>
+        </form>
+      </div>
+
+      <div id="comments-container">
+        <!-- Комментарии будут загружены сюда -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =============================================================================
+       ЛОГИКА BOARD.HTML — ВСТРОЕННЫЙ COMMENTS.JS
+       ============================================================================= */
+
+    const COMMENTS_KEY = 'fielsdown_comments_v1';
+    const POSTS_KEY = 'fielsdown_posts_v1';
+    const SESSION_KEY = 'fielsdown_session_v1';
+    const DEFAULT_AVATAR = 'https://static.cdninstagram.com/rsrc.php/v3/yo/r/qhYsMwhQJy-.png';
+
+    // Получить параметр из URL
+    function getBoardName() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('b')?.toLowerCase() || null;
+    }
+
+    // Получить сессию
+    function getSession() {
+      try {
+        const raw = localStorage.getItem(SESSION_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // Получить посты доски
+    function getPostsByBoard(boardName) {
+      try {
+        const posts = JSON.parse(localStorage.getItem(POSTS_KEY) || '[]');
+        return posts.filter(p => p.board === boardName);
+      } catch (e) {
+        return [];
+      }
+    }
+
+    // Получить комментарии к посту (пока к доске)
+    function getCommentsByBoard(boardName) {
+      try {
+        const comments = JSON.parse(localStorage.getItem(COMMENTS_KEY) || '[]');
+        return comments.filter(c => c.board === boardName);
+      } catch (e) {
+        return [];
+      }
+    }
+
+    // Сохранить комментарий
+    function saveComment(comment) {
+      try {
+        const comments = JSON.parse(localStorage.getItem(COMMENTS_KEY) || '[]');
+        comments.push(comment);
+        localStorage.setItem(COMMENTS_KEY, JSON.stringify(comments));
+      } catch (e) {
+        throw new Error('Не удалось сохранить комментарий');
+      }
+    }
+
+    // Формат времени
+    function formatTime(dateStr) {
+      const date = new Date(dateStr);
+      return date.toLocaleString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    // Отобразить пост (заглушка: первый пост доски)
+    function renderPost(boardName) {
+      const posts = getPostsByBoard(boardName);
+      const post = posts.length > 0 ? posts[0] : null;
+
+      if (post) {
+        document.getElementById('post-author').textContent = `b/${post.author || 'anonymous'}`;
+        document.getElementById('post-content').textContent = post.content;
+        document.getElementById('post-time').textContent = formatTime(post.createdAt);
+      } else {
+        document.getElementById('post-content').textContent = 'Эта доска существует, но пока нет постов.';
+      }
+    }
+
+    // Отобразить комментарии
+    function renderComments(boardName) {
+      const container = document.getElementById('comments-container');
+      const comments = getCommentsByBoard(boardName);
+
+      if (comments.length === 0) {
+        container.innerHTML = '<div class="no-comments">Пока нет комментариев. Будьте первым!</div>';
+        return;
+      }
+
+      // Сортировка: новые ниже
+      const sorted = [...comments].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+      const html = sorted.map(comment => `
+        <div class="comment">
+          <div class="comment-header">
+            <span class="comment-author">b/${comment.author || 'anonymous'}</span>
+            <span class="comment-time">${formatTime(comment.createdAt)}</span>
+          </div>
+          <div class="comment-content">${comment.content}</div>
+        </div>
+      `).join('');
+
+      container.innerHTML = html;
+    }
+
+    // Основная инициализация
+    document.addEventListener('DOMContentLoaded', function () {
+      const boardName = getBoardName();
+      if (!boardName) {
+        document.getElementById('board-name').textContent = 'ошибка';
+        document.getElementById('post-content').textContent = 'Не указана доска.';
+        return;
+      }
+
+      document.getElementById('board-name').textContent = boardName;
+      renderPost(boardName);
+      renderComments(boardName);
+
+      // Обработка отправки комментария
+      document.getElementById('commentForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const content = document.getElementById('commentContent').value.trim();
+        const errorEl = document.getElementById('commentError');
+
+        if (!content) {
+          errorEl.textContent = 'Комментарий не может быть пустым.';
+          return;
+        }
+
+        if (content.length > 500) {
+          errorEl.textContent = 'Максимум 500 символов.';
+          return;
+        }
+
+        errorEl.textContent = '';
+
+        const session = getSession();
+        const author = session?.username || 'anonymous';
+
+        const newComment = {
+          id: Date.now().toString(36),
+          board: boardName,
+          author: author,
+          content: content,
+          createdAt: new Date().toISOString()
+        };
+
+        try {
+          saveComment(newComment);
+          document.getElementById('commentContent').value = '';
+          renderComments(boardName);
+        } catch (err) {
+          errorEl.textContent = 'Не удалось отправить комментарий.';
+        }
+      });
+    });
+  </script>
+</body>
+  </html>
