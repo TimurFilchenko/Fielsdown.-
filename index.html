@@ -2,284 +2,468 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fielsdown — Правда о персонажах</title>
-  <meta name="description" content="Сайт, где мы критикуем немощные и нелогичные, недостаточные анимешные игры, присаживайся по удобнее друг мой и смотри."/>
-  <style id="dynamic-style"></style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Fielsdown — Fandom Community без цензуры и шаблонов." />
+  <meta name="author" content="Fielsdown User" />
+  <title>Fielsdown — Fandom Community</title>
+  <!-- Иконка сайта -->
+  <link rel="icon" type="image/x-icon" href="/public/favicon.ico" />
+  <!-- Глобальные стили -->
+  <link rel="stylesheet" href="/css/globals.css" />
+  <!-- Встроенные стили для главной страницы -->
+  <style>
+    /* =============================================================================
+       ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ДЛЯ INDEX.HTML
+       Расширение globals.css без замены
+       ============================================================================= */
+
+    /* === Шапка: аватарка и авторизация === */
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--border);
+      background: var(--bg-tertiary);
+      transition: var(--transition);
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .user-avatar:hover {
+      transform: scale(1.06);
+      border-color: var(--accent);
+      box-shadow: 0 2px 6px rgba(0,119,255,0.2);
+    }
+    .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 8px;
+      transition: var(--transition);
+    }
+    .user-menu:hover {
+      background: var(--bg-secondary);
+    }
+    .user-nick {
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 15px;
+      letter-spacing: -0.2px;
+    }
+
+    /* === Кнопки входа === */
+    .auth-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .auth-actions a {
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      transition: var(--transition);
+    }
+    .auth-actions a:hover {
+      background: var(--bg-tertiary);
+      transform: translateY(-1px);
+      box-shadow: var(--card-shadow);
+    }
+
+    /* === Сетка досок === */
+    .boards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+      margin: 28px 0 40px;
+    }
+
+    /* === Карточка доски === */
+    .board-card {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 20px;
+      transition: var(--transition);
+      text-decoration: none;
+      display: block;
+      position: relative;
+      overflow: hidden;
+    }
+    .board-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+      border-color: #d5d5d5;
+    }
+    .board-link {
+      display: block;
+      font-size: 19px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--text-primary);
+      text-decoration: none;
+      line-height: 1.3;
+    }
+    .board-prefix {
+      color: var(--accent);
+      font-weight: 800;
+    }
+    .board-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+    .board-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .board-creator, .board-date {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* === Новая доска === */
+    .new-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: #ff6b6b;
+      color: white;
+      font-size: 10px;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 10px;
+      animation: pulseNew 2s infinite;
+    }
+    @keyframes pulseNew {
+      0% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4); }
+      70% { box-shadow: 0 0 0 6px rgba(255, 107, 107, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
+    }
+
+    /* === Кнопка создания доски === */
+    .board-create {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 18px;
+      text-decoration: none;
+      min-height: 140px;
+      border: 2px dashed var(--border);
+      border-radius: var(--card-radius);
+      transition: var(--transition);
+    }
+    .board-create:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(0, 119, 255, 0.03);
+    }
+    .plus-sign {
+      font-size: 36px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: var(--accent);
+      transition: var(--transition);
+    }
+    .board-create:hover .plus-sign {
+      transform: rotate(90deg) scale(1.15);
+    }
+
+    /* === Пустое состояние === */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+    .empty-state a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .empty-state a:hover {
+      text-decoration: underline;
+    }
+
+    /* === Топ постов === */
+    .top-posts {
+      margin-top: 40px;
+    }
+    .posts-list .placeholder {
+      color: var(--text-muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* === Адаптив для мобильных === */
+    @media (max-width: 768px) {
+      .topbar .container {
+        flex-wrap: wrap;
+        gap: 14px;
+      }
+      .tabs {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        margin-top: 10px;
+      }
+      .boards-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      .board-card {
+        padding: 18px;
+      }
+    }
+
+    /* === Загрузка === */
+    .loading-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 60px;
+      color: var(--text-muted);
+    }
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-top: 2px solid var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 10px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
-
-  <header>
-    <div class="site-title">Fielsdown</div>
-    <div class="subtitle">Герои падают здесь первыми</div>
-
-    <div class="warning-box">
-      <strong>ВНИМАНИЕ:</strong> Этот сайт содержит жёсткую, саркастичную критику персонажей из анимешных игр + ещё в ранней версии. Мы не ненавидим — мы вскрываем. Если вы верите, что «красивый персонаж» + «сочные и пышные формы» + «короткие юбки» = это нормально — <strong>вам не сюда (используйте компьютерный вид сайта, так интуитивно понятно и красивее)</strong>
+  <!-- Шапка сайта -->
+  <header class="topbar">
+    <div class="container">
+      <h1 class="logo">Fielsdown</h1>
+      <nav class="tabs">
+        <a href="/" class="tab active">Посты</a>
+      </nav>
+      <!-- Блок авторизации (заполняется скриптом) -->
+      <div class="auth-section" id="auth-section">
+        <div class="loading-placeholder">
+          <div class="spinner"></div>
+          <span>Загрузка...</span>
+        </div>
+      </div>
     </div>
   </header>
 
+  <!-- Основной контент -->
   <main class="container">
-    <p class="intro">
-      Ниже — список анимешных игр, чьи персонажи уже попали под нож Fielsdown.  
-      Каждый из них — не герой, не идол, не «загадочная красавица».  
-      Это <span class="highlight">маркетинговые продукты с Rule 34-гарантией</span>.
-    </p>
+    <!-- Секция досок -->
+    <div class="boards-list">
+      <h2>Доски сообщества</h2>
+      <div class="boards-grid" id="boards-container">
+        <!-- Статичные доски (резерв) -->
+        <div class="board-card">
+          <a href="/board.html?b=games" class="board-link">
+            <span class="board-prefix">b/</span>games
+          </a>
+          <p class="board-desc">Обсуждение игр, геймдизайна и инди-проектов</p>
+          <div class="board-meta">
+            <span class="board-creator">by system</span>
+            <span class="board-date">01 янв</span>
+          </div>
+        </div>
+        <div class="board-card">
+          <a href="/board.html?b=anime" class="board-link">
+            <span class="board-prefix">b/</span>anime
+          </a>
+          <p class="board-desc">Аниме, персонажи, шиппинги, критика</p>
+          <div class="board-meta">
+            <span class="board-creator">by system</span>
+            <span class="board-date">01 янв</span>
+          </div>
+        </div>
+        <!-- Кнопка создания -->
+        <a href="/thread.html?mode=create-board" class="board-card board-create">
+          <span class="plus-sign">+</span>
+          <span>Создать доску</span>
+        </a>
+      </div>
+    </div>
 
-    <table class="games-table">
-      <thead>
-        <tr>
-          <th>Игра</th>
-          <th>Студия</th>
-          <th>Персонажи в разборе</th>
-          <th>Статус</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Zenless Zone Zero</td>
-          <td>HoYoverse</td>
-          <td>
-            <a href="zzz/persons/miyabi.html">Мияби</a>, 
-            <a href="zzz/persons/jane.html">Джейн Доу</a>, 
-            <a href="zzz/persons/billy.html">Билли</a>, 
-            <a href="zzz/persons/nicole.html">Николь</a>, 
-            <a href="zzz/persons/anby.html">Энби</a>, 
-            <a href="zzz/persons/alice.html">Элис Таймфилд</a>,
-            <a href="zzz/persons/ellen_joe.html">Эллен Джо </a>,
-            <a href="zzz/persons/grace_howard.html">Грэйс Ховард</a>,
-            <a href="zzz/persons/zhu_yuan.html">Чжу Юань (в реальности она немощь)</a>,
-            <a href="zzz/persons/qingyi.html">Цинъи</a>,
-            <a href="zzz/persons/wise_belle.html">Вайз и Бэлль</a>,
-            <a href="zzz/persons/lycaon.html">Ликаон</a>,
-            <a href="zzz/persons/ben_bigger.html">Бен  Биггер</a>,
-            <a href="zzz/persons/koleda_belobog.html">Коляда Белобог</a>,
-            <a href="zzz/persons/yuzuriha_uniqami.html">Униками Юдзуха</a>,
-            <a href="zzz/persons/lucy_elouen.html">Люсии Элоуэн</a>,
-            <a href="zzz/persons/corin_wickes.html">Корин Уикс</a>,
-            <a href="zzz/persons/lucien_de_montefio.html">Люсиен Де Монтефио</a>,
-            <a href="zzz/persons/socaku.html">Сокаку</a>,
-            <a href="zzz/persons/nekomata_mana.html">Нэкомия Мана</a>,
-            <a href="zzz/persons/soldier_11.html">Солдат 11</a>,
-            <a href="zzz/persons/anton_ivanov.html">Антон Иванов</a>,
-            <a href="zzz/persons/hugo_vlad.html">Хуго Влад</a>
-          </td>
-          <td class="status active">ГОТОВ</td>
-        </tr>
-        <tr>
-          <td>Genshin Impact</td>
-          <td>HoYoverse</td>
-          <td>—</td>
-          <td class="status soon">СКОРО</td>
-        </tr>
-        <tr>
-          <td>Honkai: Star Rail</td>
-          <td>HoYoverse</td>
-          <td>—</td>
-          <td class="status soon">СКОРО</td>
-        </tr>
-        <tr>
-          <td>Honkai Impact 3rd</td>
-          <td>HoYoverse</td>
-          <td>—</td>
-          <td class="status soon">СКОРО</td>
-        </tr>
-        <tr>
-          <td>Blue Archive</td>
-          <td>Nexon / Yostar</td>
-          <td>—</td>
-          <td class="status soon">СКОРО</td>
-        </tr>
-        <tr>
-          <td>Punishing: Gray Raven</td>
-          <td>Kuro Games</td>
-          <td>—</td>
-          <td class="status soon">СКОРО</td>
-        </tr>
-        <tr>
-          <td>Wuthering Waves</td>
-          <td>Kuro Games</td>
-          <td>—</td>
-          <td class="status soon">СКОРО</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div class="footer-note">
-      <p>Хочешь, чтобы разобрали конкретного персонажа? Напиши — и мы его <span class="highlight">разнесём</span>.</p>
+    <!-- Топ постов -->
+    <div class="top-posts">
+      <h2>Топ постов сегодня</h2>
+      <div class="posts-list">
+        <p class="placeholder">
+          Система постов активируется после создания первой доски и публикации контента.
+          Пока что вы можете создать свою доску и стать первым автором!
+        </p>
+      </div>
     </div>
   </main>
-  
+
+  <!-- Подвал -->
+  <footer class="footer">
+    <div class="container">
+      <p>Fielsdown © 2025 — Fandom Community без цензуры и шаблонов.</p>
+    </div>
+  </footer>
+
+  <!-- Встроенный JavaScript для полной автономности -->
   <script>
-    // Fielsdown — app.js (встроенный)
-    const styles = `
-    
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+    /* =============================================================================
+       ЛОГИКА INDEX.HTML — ПОЛНАЯ ВЕРСИЯ
+       Работает без внешних зависимостей (на случай, если main.js не загрузится)
+       ============================================================================= */
+
+    // Константы
+    const SESSION_KEY = 'fielsdown_session_v1';
+    const BOARDS_KEY = 'fielsdown_boards_v1';
+    const DEFAULT_AVATAR = 'https://static.cdninstagram.com/rsrc.php/v3/yo/r/qhYsMwhQJy-.png';
+
+    // Безопасное получение сессии
+    function getSession() {
+      try {
+        const raw = localStorage.getItem(SESSION_KEY);
+        if (!raw) return null;
+        const session = JSON.parse(raw);
+        return (session && session.isLoggedIn) ? session : null;
+      } catch (e) {
+        console.warn('Сессия повреждена:', e);
+        return null;
+      }
+    }
+
+    // Безопасное получение досок
+    function getBoards() {
+      try {
+        const raw = localStorage.getItem(BOARDS_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        console.warn('Ошибка загрузки досок:', e);
+        return [];
+      }
+    }
+
+    // Форматирование даты
+    function formatDate(dateStr) {
+      if (!dateStr) return '—';
+      const date = new Date(dateStr);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffHours = diffMs / (1000 * 60 * 60);
+      
+      if (diffHours < 1) return 'только что';
+      if (diffHours < 24) return 'сегодня';
+      if (diffHours < 48) return 'вчера';
+      
+      return date.toLocaleDateString('ru-RU', {
+        day: '2-digit',
+        month: 'short'
+      });
+    }
+
+    // Обновление блока авторизации
+    function updateAuthSection() {
+      const authSection = document.getElementById('auth-section');
+      if (!authSection) return;
+
+      const session = getSession();
+      if (session && session.isLoggedIn) {
+        const avatarUrl = session.avatar || DEFAULT_AVATAR;
+        const username = session.username || 'user';
+        authSection.innerHTML = `
+          <div class="user-menu" onclick="window.location.href='/profile.html'">
+            <img src="${avatarUrl}" 
+                 alt="Аватар ${username}" 
+                 class="user-avatar"
+                 onerror="this.src='${DEFAULT_AVATAR}'">
+            <span class="user-nick">b/${username}</span>
+          </div>
+        `;
+      } else {
+        authSection.innerHTML = `
+          <div class="auth-actions">
+            <a href="/register.html">Регистрация</a>
+            <a href="/login.html">Вход</a>
+          </div>
+        `;
+      }
+    }
+
+    // Отображение досок
+    function renderBoards() {
+      const container = document.getElementById('boards-container');
+      if (!container) return;
+
+      const boards = getBoards();
+      if (boards.length === 0) {
+        // Оставляем статичные доски
+        return;
       }
 
-      body {
-        background: #0a0a0a;
-        color: #e8e8e8;
-        font-family: 'Segoe UI', 'Courier New', monospace;
-        line-height: 1.7;
-        padding: 20px;
-        background-image: 
-          radial-gradient(circle at 10% 20%, rgba(30, 0, 0, 0.2) 0%, transparent 20%),
-          radial-gradient(circle at 90% 80%, rgba(50, 0, 0, 0.15) 0%, transparent 25%);
-      }
+      // Сортировка: новые выше
+      boards.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-      a {
-        color: #ff5555;
-        text-decoration: none;
-        border-bottom: 1px dotted #ff5555;
-      }
+      let html = '';
+      const now = Date.now();
 
-      a:hover {
-        color: #ff8888;
-        text-decoration: none;
-      }
+      boards.forEach(board => {
+        const isNew = (now - new Date(board.createdAt)) < 24 * 60 * 60 * 1000;
+        html += `
+          <div class="board-card">
+            <a href="/board.html?b=${encodeURIComponent(board.name)}" class="board-link">
+              <span class="board-prefix">b/</span>${board.name}
+              ${isNew ? '<span class="new-badge">НОВАЯ</span>' : ''}
+            </a>
+            <p class="board-desc">${board.description || 'Без описания.'}</p>
+            <div class="board-meta">
+              <span class="board-creator">by ${board.creator || 'anonymous'}</span>
+              <span class="board-date">${formatDate(board.createdAt)}</span>
+            </div>
+          </div>
+        `;
+      });
 
-      header {
-        max-width: 900px;
-        margin: 0 auto 40px;
-        text-align: center;
-        padding: 30px 20px;
-        border-bottom: 2px solid #ff3333;
-      }
+      // Кнопка создания
+      html += `
+        <a href="/thread.html?mode=create-board" class="board-card board-create">
+          <span class="plus-sign">+</span>
+          <span>Создать доску</span>
+        </a>
+      `;
 
-      .site-title {
-        font-size: 2.6rem;
-        color: #ff3333;
-        text-transform: uppercase;
-        letter-spacing: 3px;
-        margin-bottom: 10px;
-        font-weight: 900;
-      }
+      container.innerHTML = html;
+    }
 
-      .subtitle {
-        font-size: 1.2rem;
-        color: #aaa;
-        margin-bottom: 20px;
-        font-style: italic;
-      }
+    // Инициализация при загрузке
+    document.addEventListener('DOMContentLoaded', function () {
+      updateAuthSection();
+      renderBoards();
+    });
 
-      .warning-box {
-        background: #1a0505;
-        border: 1px solid #ff4444;
-        border-radius: 6px;
-        padding: 20px;
-        margin: 25px auto;
-        max-width: 800px;
-        font-size: 0.95rem;
-        line-height: 1.6;
-      }
-
-      .warning-box strong {
-        color: #ff6666;
-      }
-
-      .container {
-        max-width: 900px;
-        margin: 0 auto;
-      }
-
-      .intro {
-        text-align: center;
-        margin-bottom: 30px;
-        font-size: 1.1rem;
-        line-height: 1.8;
-      }
-
-      .highlight {
-        color: #ff9999;
-        font-weight: bold;
-      }
-
-      .games-table {
-        width: 100%;
-        border-collapse: collapse;
-        background: #121212;
-        margin: 30px 0;
-        border: 1px solid #333;
-        border-radius: 8px;
-        overflow: hidden;
-      }
-
-      .games-table th,
-      .games-table td {
-        padding: 14px 16px;
-        text-align: left;
-        border-bottom: 1px solid #333;
-      }
-
-      .games-table th {
-        background: #220000;
-        color: #ff8888;
-        font-weight: bold;
-        text-transform: uppercase;
-        font-size: 0.95rem;
-        letter-spacing: 1px;
-      }
-
-      .games-table tr:last-child td {
-        border-bottom: none;
-      }
-
-      .games-table tr:hover {
-        background: #1a1a1a;
-      }
-
-      .status {
-        font-weight: bold;
-        padding: 4px 10px;
-        border-radius: 4px;
-        font-size: 0.9rem;
-      }
-
-      .status.active {
-        background: #002200;
-        color: #66ff66;
-      }
-
-      .status.soon {
-        background: #221100;
-        color: #ffaa55;
-      }
-
-      .footer-note {
-        text-align: center;
-        margin-top: 40px;
-        color: #bbb;
-        font-style: italic;
-      }
-
-      @media (max-width: 768px) {
-        body {
-          padding: 15px;
-          font-size: 15px;
-        }
-        .site-title {
-          font-size: 2rem;
-        }
-        .games-table th,
-        .games-table td {
-          padding: 10px 12px;
-          font-size: 0.9rem;
-        }
-        .games-table td {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-        .games-table td a {
-          display: inline-block;
-        }
-      }
-    `;
-
-    document.getElementById('dynamic-style').textContent = styles;
+    // Экспорт для отладки
+    window.FielsdownIndex = {
+      getSession,
+      getBoards,
+      updateAuthSection,
+      renderBoards
+    };
   </script>
 </body>
 </html>
