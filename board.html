@@ -168,6 +168,26 @@
   <!-- Подключение comments.js -->
   <script src="/js/comments.js"></script>
   <script>
+  // Авто-вставка ника при ответе на комментарий
+  document.addEventListener('click', function(e) {
+    // Ловим клик по кнопке "ответить"
+    if (e.target.classList.contains('reply-btn')) {
+      const commentId = e.target.getAttribute('data-id');
+      const authorElement = e.target.closest('.comment').querySelector('.comment-author');
+      const authorName = authorElement ? authorElement.textContent.trim() : 'anonymous';
+      
+      // Ждём, пока форма появится
+      setTimeout(() => {
+        const replyTextarea = document.getElementById(`reply-text-${commentId}`);
+        if (replyTextarea) {
+          replyTextarea.value = `@${authorName} `;
+          replyTextarea.focus();
+        }
+      }, 100);
+    }
+  });
+  </script>
+  <script>
     // Получаем имя доски из URL
     const urlParams = new URLSearchParams(window.location.search);
     const boardName = urlParams.get('b');
