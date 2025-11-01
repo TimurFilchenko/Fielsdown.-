@@ -253,6 +253,81 @@
   </style>
 </head>
 <body>
+<!-- Панель поиска -->
+<div style="
+  background: white;
+  padding: 16px 0;
+  border-bottom: 1px solid #e0e0e0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+">
+  <div class="container" style="display: flex; gap: 12px; max-width: 960px; margin: 0 auto; padding: 0 20px;">
+    <input
+      type="text"
+      id="board-search"
+      placeholder="🔍 Поиск досок: anime, games, art..."
+      style="
+        flex: 1;
+        padding: 12px 20px;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        font-size: 16px;
+        outline: none;
+        transition: all 0.2s;
+      "
+    />
+    <button
+      id="search-clear"
+      style="
+        background: #f0f0f0;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        width: 44px;
+        font-weight: bold;
+        cursor: pointer;
+        display: none;
+      "
+    >×</button>
+  </div>
+</div>
+
+<script>
+  // Живой поиск по доскам
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('board-search');
+    const clearBtn = document.getElementById('search-clear');
+    const boardsContainer = document.getElementById('boards-container');
+
+    if (!searchInput || !boardsContainer) return;
+
+    // Показ/скрытие кнопки очистки
+    searchInput.addEventListener('input', () => {
+      clearBtn.style.display = searchInput.value ? 'block' : 'none';
+      
+      const term = searchInput.value.trim().toLowerCase();
+      const cards = boardsContainer.querySelectorAll('.board-card:not(.board-create)');
+      
+      cards.forEach(card => {
+        const name = card.querySelector('.board-link')?.textContent.toLowerCase() || '';
+        const desc = card.querySelector('.board-desc')?.textContent.toLowerCase() || '';
+        card.style.display = (name.includes(term) || desc.includes(term)) ? 'block' : 'none';
+      });
+    });
+
+    // Очистка поиска
+    clearBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      clearBtn.style.display = 'none';
+      boardsContainer.querySelectorAll('.board-card:not(.board-create)').forEach(card => {
+        card.style.display = 'block';
+      });
+      searchInput.focus();
+    });
+  });
+</script>
+  
   <!-- Шапка сайта -->
   <header class="topbar">
     <div class="container">
