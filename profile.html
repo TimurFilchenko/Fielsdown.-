@@ -311,6 +311,93 @@
   </div>
 
   <script>
+// =============================================================================
+// РЕЖИМ ПРОСМОТРА ЧУЖОГО ПРОФИЛЯ
+// =============================================================================
+(function () {
+  const urlParams = new URLSearchParams(window.location.search);
+  const targetUser = urlParams.get('user');
+
+  if (!targetUser) return; // Это свой профиль — выходим
+
+  // Получаем текущую сессию
+  const session = (() => {
+    try {
+      const raw = localStorage.getItem('fielsdown_session_v1');
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  })();
+
+  const isOwnProfile = session && session.username === targetUser;
+
+  if (isOwnProfile) return; // Это всё ещё свой профиль
+
+  // === БЛОКИРУЕМ ВСЁ РЕДАКТИРОВАНИЕ ===
+  window.addEventListener('DOMContentLoaded', () => {
+    // Скрываем кнопки редактирования
+    const editBtn = document.getElementById('edit-btn');
+    const saveBtn = document.getElementById('save-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    
+    if (editBtn) editBtn.style.display = 'none';
+    if (saveBtn) saveBtn.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    if (logoutBtn) logoutBtn.style.display = 'none';
+
+    // Загружаем данные чужого пользователя
+    const users = (() => {
+      try {
+        const raw = localStorage.getItem('fielsdown_users_v1');
+        return raw ? JSON.parse(raw) : {};
+      } catch (e) {
+        return {};
+      }
+    })();
+
+    const userData = users[targetUser.toLowerCase()] || {
+      username: targetUser,
+      avatar: 'https://static.cdninstagram.com/rsrc.php/v3/yo/r/qhYsMwhQJy-.png',
+      bio: 'Нет описания.'
+    };
+
+    // Обновляем интерфейс
+    const usernameDisplay = document.getElementById('username-display');
+    const avatarPreview = document.getElementById('avatar-preview');
+    const bioDisplay = document.getElementById('bio-display');
+
+    if (usernameDisplay) usernameDisplay.textContent = `b/${userData.username}`;
+    if (avatarPreview) avatarPreview.src = userData.avatar;
+    if (bioDisplay) bioDisplay.textContent = userData.bio || 'Нет описания.';
+
+    // Блокируем все поля ввода
+    document.querySelectorAll('input, textarea, button').forEach(el => {
+      if (!el.classList.contains('back-link')) {
+        el.disabled = true;
+        el.style.opacity = '0.6';
+        el.style.pointerEvents = 'none';
+      }
+    });
+
+    // Добавляем бейдж "просмотр"
+    const badge = document.createElement('span');
+    badge.textContent = 'только просмотр';
+    badge.style.background = '#e0e0e0';
+    badge.style.color = '#666';
+    badge.style.fontSize = '13px';
+    badge.style.padding = '4px 10px';
+    badge.style.borderRadius = '12px';
+    badge.style.marginLeft = '12px';
+    badge.style.verticalAlign = 'middle';
+    
+    if (usernameDisplay) {
+      usernameDisplay.parentNode.insertBefore(badge, usernameDisplay.nextSibling);
+    }
+  });
+})();
+    
     // === Константы ===
     const SESSION_KEY = 'fielsdown_session_v1';
     const DEFAULT_AVATAR = 'https://static.cdninstagram.com/rsrc.php/v3/yo/r/qhYsMwhQJy-.png';
