@@ -1,40 +1,63 @@
 /* =============================================================================
-   AUTH.JS — Клиентская аутентификация с поддержкой PHP-бэкенда
+   AUTH.JS — Клиентская аутентификация на localStorage
    Автор: Тимур Фильченко Сергеевич
-   Цель: Безопасный вход/регистрация через HttpOnly куки, сохранение сессии
-   Работает как швейцарские часы — без сбоев, без утечек.
+   Цель: Надёжная регистрация и вход без бэкенда, без сбоев, без утечек.
+   Работает как швейцарские часы — точно, стабильно, вечно.
    ============================================================================= */
 
 // === Константы ===
-const API_BASE = '/PHP/auth.php';
-const SESSION_CHECK_INTERVAL = 60000; // Проверка каждые 60 сек
+const SESSION_KEY = 'fielsdown_session_v1';
+const USERS_KEY = 'fielsdown_users_v1';
+const DEFAULT_AVATAR = 'https://static.cdninstagram.com/rsrc.php/v3/yo/r/qhYsMwhQJy-.png';
 
 // === Вспомогательные функции ===
 
 /**
- * Выполняет запрос к PHP-бэкенду
+ * Получает текущую сессию
  */
-async function apiRequest(action, data = {}) {
+function getSession() {
   try {
-    const response = await fetch(`${API_BASE}?action=${action}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      credentials: 'include', // Важно для куки!
-      body: JSON.stringify(data)
-    });
-
-    const result = await response.json();
-    if (!response.ok) {
-      throw new Error(result.error || 'Ошибка сервера');
-    }
-    return result;
-  } catch (error) {
-    console.error(`API Error (${action}):`, error);
-    throw error;
+    const raw = localStorage.getItem(SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    localStorage.removeItem(SESSION_KEY);
+    return null;
   }
+}
+
+/**
+ * Сохраняет сессию
+ */
+function saveSession(data) {
+  const session = {
+    isLoggedIn: true,
+    username: data.username,
+    avatar: data.avatar || DEFAULT_AVATAR,
+    bio: data.bio || '',
+    createdAt: data.createdAt || new Date().toISOString(),
+    postCount: data.postCount || 0,
+    boardCount: data.boardCount || 0
+  };
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+}
+
+/**
+ * Получает всех пользователей
+ */
+function getUsers() {
+  try {
+    const raw = localStorage.getItem(USERS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+/**
+ * Сохраняет пользователей
+ */
+function saveUsers(users) {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
 }
 
 /**
@@ -49,8 +72,11 @@ function generateUniqueNickname() {
     const noun = nouns[Math.floor(Math.random() * nouns.length)];
     const num = Math.floor(Math.random() * 9000) + 1000;
     const nick = `${adj}${noun}${num}`;
-    // Проверка на сервере будет позже
-    return nick;
+    const users = getUsers();
+    if (!users[nick.toLowerCase()]) {
+      return nick;
+    }
+    attempts++;
   }
   return `user_${Date.now().toString(36).slice(-8)}`;
 }
@@ -61,6 +87,16 @@ function generateUniqueNickname() {
 function generateRandomPassword() {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*';
   return Array.from({ length: 14 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+}
+
+/**
+ * Проверяет, свободен ли ник
+ */
+function isUsernameAvailable(username) {
+  if (username.length < 3 || username.length > 20) return false;
+  if (!/^[a-zA-Z0-9_]+$/.test(username)) return false;
+  const users = getUsers();
+  return !users[username.toLowerCase()];
 }
 
 /**
@@ -82,70 +118,66 @@ function hideError(fieldId) {
   if (el) el.classList.remove('show');
 }
 
-/**
- * Проверяет, доступен ли ник на сервере
- */
-async function isUsernameAvailable(username) {
-  try {
-    // В реальном проекте — отдельный эндпоинт, но пока проверим при регистрации
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
-
-// === Основные функции аутентификации ===
+// === Основные функции ===
 
 /**
  * Регистрация нового пользователя
  */
-async function registerUser(username, password) {
-  return await apiRequest('register', { username, password });
+function registerUser(username, password) {
+  const users = getUsers();
+  const userData = {
+    username: username,
+    passwordHash: btoa(password), // Простой mock-хэш (в реальном проекте — bcrypt на сервере)
+    createdAt: new Date().toISOString(),
+    avatar: DEFAULT_AVATAR,
+    bio: ''
+  };
+  users[username.toLowerCase()] = userData;
+  saveUsers(users);
+
+  // Создаём сессию
+  saveSession(userData);
 }
 
 /**
  * Вход в аккаунт
  */
-async function loginUser(username, password) {
-  return await apiRequest('login', { username, password });
+function loginUser(username, password) {
+  const users = getUsers();
+  const user = users[username.toLowerCase()];
+  if (!user || btoa(password) !== user.passwordHash) {
+    throw new Error('Неверный ник или пароль');
+  }
+
+  saveSession(user);
 }
 
 /**
  * Выход из аккаунта
  */
-async function logoutUser() {
-  await apiRequest('logout');
-  // Удаляем локальные данные
-  localStorage.removeItem('fielsdown_temp_user');
-  // Перенаправляем
+function logoutUser() {
+  localStorage.removeItem(SESSION_KEY);
   window.location.href = '/';
 }
 
 /**
- * Получает статус текущей сессии
+ * Проверка сессии
  */
-async function getSessionStatus() {
-  try {
-    const status = await apiRequest('status');
-    return status;
-  } catch (e) {
-    return { isLoggedIn: false };
-  }
+function checkAuthStatus() {
+  return !!getSession();
 }
 
 // === Инициализация на страницах ===
 
 /**
- * Обновляет интерфейс в зависимости от сессии
+ * Обновляет интерфейс аутентификации
  */
-async function updateAuthUI() {
+function updateAuthUI() {
   const authSection = document.getElementById('auth-section');
   if (!authSection) return;
 
-  const session = await getSessionStatus();
-  const DEFAULT_AVATAR = 'https://static.cdninstagram.com/rsrc.php/v3/yo/r/qhYsMwhQJy-.png';
-
-  if (session.isLoggedIn) {
+  const session = getSession();
+  if (session && session.isLoggedIn) {
     authSection.innerHTML = `
       <div class="user-menu" onclick="window.location.href='/profile.html'" style="
         display: flex;
@@ -153,7 +185,7 @@ async function updateAuthUI() {
         gap: 12px;
         cursor: pointer;
       ">
-        <img src="${session.avatar || DEFAULT_AVATAR}" 
+        <img src="${session.avatar}" 
              class="user-avatar"
              style="
                width: 36px;
@@ -204,18 +236,18 @@ function initRegisterPage() {
     document.querySelectorAll('.error-message').forEach(el => el.classList.remove('show'));
   });
 
-  // Валидация
+  // Валидация ника
   usernameInput?.addEventListener('input', () => {
     const val = usernameInput.value.trim();
-    if (val && (val.length < 3 || val.length > 20 || !/^[a-zA-Z0-9_]+$/.test(val))) {
-      showError('username', 'Ник: 3–20 символов, буквы, цифры, _');
+    if (val && !isUsernameAvailable(val)) {
+      showError('username', 'Ник занят или недопустим.');
     } else {
       hideError('username');
     }
   });
 
   // Отправка формы
-  form.addEventListener('submit', async (e) => {
+  form.addEventListener('submit', (e) => {
     e.preventDefault();
 
     const username = usernameInput.value.trim();
@@ -223,23 +255,30 @@ function initRegisterPage() {
     const confirm = confirmInput.value;
 
     // Валидация
-    if (!username) return showError('username', 'Укажите ник.');
-    if (username.length < 3 || username.length > 20 || !/^[a-zA-Z0-9_]+$/.test(username)) {
-      return showError('username', 'Недопустимый ник.');
+    if (!username) {
+      showError('username', 'Введите никнейм.');
+      return;
     }
-    if (!password) return showError('password', 'Сгенерируйте пароль.');
-    if (password !== confirm) return showError('confirm', 'Пароли не совпадают.');
+    if (!isUsernameAvailable(username)) {
+      showError('username', 'Ник занят или недопустим.');
+      return;
+    }
+    if (!password) {
+      showError('password', 'Сгенерируйте пароль.');
+      return;
+    }
+    if (password !== confirm) {
+      showError('confirm', 'Пароли не совпадают.');
+      return;
+    }
 
+    // Регистрация
     try {
-      const result = await registerUser(username, password);
-      alert(`✅ Успешно!\nНик: ${result.username}\nПароль: ${password}\n❗ Сохраните его!`);
+      registerUser(username, password);
+      alert(`✅ Успешно!\nНик: ${username}\nПароль: ${password}\n❗ Сохраните его!`);
       window.location.href = '/profile.html';
     } catch (error) {
-      if (error.message === 'Ник занят') {
-        showError('username', 'Этот ник уже занят.');
-      } else {
-        showError('username', error.message);
-      }
+      showError('username', error.message);
     }
   });
 }
@@ -249,17 +288,23 @@ function initLoginPage() {
   const form = document.getElementById('login-form');
   if (!form) return;
 
-  form.addEventListener('submit', async (e) => {
+  form.addEventListener('submit', (e) => {
     e.preventDefault();
 
     const username = document.getElementById('login-username').value.trim();
     const password = document.getElementById('login-password').value;
 
-    if (!username) return showError('username', 'Введите никнейм.');
-    if (!password) return showError('password', 'Введите пароль.');
+    if (!username) {
+      showError('username', 'Введите никнейм.');
+      return;
+    }
+    if (!password) {
+      showError('password', 'Введите пароль.');
+      return;
+    }
 
     try {
-      const result = await loginUser(username, password);
+      loginUser(username, password);
       window.location.href = '/profile.html';
     } catch (error) {
       if (error.message.includes('Неверный')) {
@@ -282,9 +327,9 @@ function initProfilePage() {
 }
 
 // === Глобальная инициализация ===
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
   // Обновляем аутентификацию на всех страницах
-  await updateAuthUI();
+  updateAuthUI();
 
   // Инициализируем страницы
   if (window.location.pathname.includes('register.html')) {
@@ -294,18 +339,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   } else if (window.location.pathname.includes('profile.html')) {
     initProfilePage();
   }
-
-  // Периодическая проверка сессии (на случай внешнего выхода)
-  if (!window.location.pathname.includes('register.html') && !window.location.pathname.includes('login.html')) {
-    setInterval(updateAuthUI, SESSION_CHECK_INTERVAL);
-  }
 });
 
 // === Экспорт для отладки ===
 window.FielsdownAuth = {
+  getSession,
+  saveSession,
+  getUsers,
   registerUser,
   loginUser,
   logoutUser,
-  getSessionStatus,
+  checkAuthStatus,
   updateAuthUI
 };
