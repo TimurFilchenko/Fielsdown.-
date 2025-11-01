@@ -1,24 +1,30 @@
 /* =============================================================================
-   PUBLIC.JS — Показ всех досок сообщества
-   Заменяет содержимое #boards-container на главной странице.
+   PUBLIC.JS — Интеграция с "Досками сообщества" на index.html
+   Находит #boards-container и заполняет его всеми досками из localStorage.
    ============================================================================= */
 
 (function () {
-  // Работает только на index.html
-  if (!window.location.pathname.match(/^\/(?:index\.html)?$/)) {
-    return;
-  }
+  // Работает ТОЛЬКО на главной странице
+  const isIndexPage = window.location.pathname === '/' || 
+                      window.location.pathname === '/index.html' ||
+                      window.location.pathname === '/fielsdown/';
+  
+  if (!isIndexPage) return;
 
-  // Ждём загрузки DOM
+  // Ждём полной загрузки страницы
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadPublicBoards);
+    document.addEventListener('DOMContentLoaded', initPublicBoards);
   } else {
-    loadPublicBoards();
+    initPublicBoards();
   }
 
-  function loadPublicBoards() {
-    const container = document.getElementById('boards-container');
-    if (!container) return;
+  function initPublicBoards() {
+    // Находим контейнер "Доски сообщества"
+    const boardsContainer = document.getElementById('boards-container');
+    if (!boardsContainer) {
+      console.warn('Контейнер #boards-container не найден на index.html');
+      return;
+    }
 
     // Получаем доски из localStorage
     let boards = [];
@@ -26,64 +32,38 @@
       const raw = localStorage.getItem('fielsdown_boards_v1');
       boards = raw ? JSON.parse(raw) : [];
     } catch (e) {
-      console.warn('Не удалось загрузить доски:', e);
+      console.error('Ошибка загрузки досок:', e);
+      return;
     }
 
-    // Сортировка: новые выше
+    // Если досок нет — оставляем статичные (как в HTML)
+    if (boards.length === 0) return;
+
+    // Сортируем: новые выше
     boards.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    // Генерация HTML
+    // Генерируем HTML в том же формате, что и в index.html
     let html = '';
-
-    if (boards.length === 0) {
-      html = `
-        <div class="board-card empty-state">
-          <p class="empty-text">Пока нет досок. 
-            <a href="/thread.html?mode=create-board">Создайте первую!</a>
-          </p>
-        </div>
-      `;
-    } else {
-      html = boards.map(board => `
+    boards.forEach(board => {
+      html += `
         <div class="board-card">
           <a href="/board.html?b=${encodeURIComponent(board.name)}" class="board-link">
             <span class="board-prefix">b/</span>${board.name}
           </a>
           <p class="board-desc">${board.description || 'Без описания.'}</p>
-          <div class="board-meta">
-            <span class="board-creator">by ${board.creator || 'anonymous'}</span>
-            <span class="board-date">${formatDate(board.createdAt)}</span>
-          </div>
         </div>
-      `).join('');
-
-      // Кнопка создания
-      html += `
-        <a href="/thread.html?mode=create-board" class="board-card board-create">
-          <span class="plus-sign">+</span>
-          <span>Создать доску</span>
-        </a>
       `;
-    }
-
-    // Обновляем контейнер
-    container.innerHTML = html;
-  }
-
-  // Форматирование даты
-  function formatDate(dateStr) {
-    if (!dateStr) return '—';
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffHours = (now - date) / (1000 * 60 * 60);
-    
-    if (diffHours < 1) return 'только что';
-    if (diffHours < 24) return 'сегодня';
-    if (diffHours < 48) return 'вчера';
-    
-    return date.toLocaleDateString('ru-RU', {
-      day: '2-digit',
-      month: 'short'
     });
+
+    // Добавляем кнопку создания (как в оригинале)
+    html += `
+      <a href="/thread.html?mode=create-board" class="board-card board-create">
+        <span class="plus-sign">+</span>
+        <span>Создать доску</span>
+      </a>
+    `;
+
+    // Заменяем содержимое контейнера
+    boardsContainer.innerHTML = html;
   }
 })();
