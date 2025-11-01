@@ -92,7 +92,7 @@
       border-color: var(--accent);
     }
 
-    /* === НОВОЕ: кнопки смены аватарки === */
+    /* === НОВОЕ: кнопки смены аватарки (сохранены) === */
     .avatar-actions {
       display: flex;
       gap: 12px;
@@ -117,12 +117,10 @@
       border-color: var(--accent);
     }
 
-    /* Скрытое файловое поле */
     #avatar-file-input {
       display: none;
     }
 
-    /* Поля редактирования (URL) */
     .edit-field {
       display: none;
       width: 100%;
@@ -239,6 +237,16 @@
     .save-status.show {
       opacity: 1;
     }
+
+    /* === НОВОЕ: режим просмотра === */
+    .view-only-badge {
+      background: #e0e0e0;
+      color: #666;
+      font-size: 13px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-left: 12px;
+    }
   </style>
 </head>
 <body>
@@ -251,14 +259,12 @@
     <div class="profile-card">
       <div class="avatar-section">
         <img id="avatar-preview" class="avatar-preview" alt="Аватар" />
-        <!-- НОВОЕ: кнопки выбора аватарки -->
+        <!-- Кнопки смены аватарки (сохранены) -->
         <div class="avatar-actions">
-          <button id="upload-btn" class="avatar-btn"> Загрузить из галереи</button>
-          <button id="url-btn" class="avatar-btn"> Вставить URL</button>
+          <button id="upload-btn" class="avatar-btn">🖼️ Загрузить из галереи</button>
+          <button id="url-btn" class="avatar-btn">🔗 Вставить URL</button>
         </div>
-        <!-- Скрытое поле для файла -->
         <input type="file" id="avatar-file-input" accept="image/*" />
-        <!-- Поле для URL (скрыто по умолчанию) -->
         <input
           type="url"
           id="avatar-url-input"
@@ -280,22 +286,25 @@
         ></textarea>
       </div>
 
+      <!-- Кнопки управления (сохранены) -->
       <div class="actions">
-        <button id="edit-btn" class="btn btn-secondary"> Редактировать профиль</button>
-        <button id="save-btn" class="btn btn-primary" style="display: none;"> Сохранить</button>
-        <button id="cancel-btn" class="btn btn-secondary" style="display: none;">Отмена</button>
+        <button id="edit-btn" class="btn btn-secondary">✏️ Редактировать профиль</button>
+        <button id="save-btn" class="btn btn-primary" style="display: none;">✅ Сохранить</button>
+        <button id="cancel-btn" class="btn btn-secondary" style="display: none;">❌ Отмена</button>
       </div>
 
-      <div id="save-status" class="save-status"> Сохранено!</div>
+      <div id="save-status" class="save-status">✅ Сохранено!</div>
 
       <button id="logout-btn" class="btn btn-danger">Выйти из аккаунта</button>
     </div>
   </div>
 
   <script>
+    // === Константы (сохранены) ===
     const SESSION_KEY = 'fielsdown_session_v1';
     const DEFAULT_AVATAR = 'https://static.cdninstagram.com/rsrc.php/v3/yo/r/qhYsMwhQJy-.png';
 
+    // === Функции (сохранены) ===
     function getSession() {
       const raw = localStorage.getItem(SESSION_KEY);
       if (!raw) return null;
@@ -320,7 +329,6 @@
       }
     }
 
-    // Преобразует File в Data URL (base64)
     function fileToDataUrl(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -330,15 +338,12 @@
       });
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    // === НОВОЕ: функция загрузки данных пользователя (своего или чужого) ===
+    function loadUserProfile(targetUsername = null) {
       const session = getSession();
-      if (!session || !session.isLoggedIn) {
-        alert('Вы не вошли в аккаунт!');
-        window.location.href = '/login.html';
-        return;
-      }
-
-      // DOM элементы
+      const isOwnProfile = !targetUsername || (session && session.username === targetUsername);
+      
+      // Элементы DOM
       const avatarPreview = document.getElementById('avatar-preview');
       const avatarFileInput = document.getElementById('avatar-file-input');
       const avatarUrlInput = document.getElementById('avatar-url-input');
@@ -350,10 +355,53 @@
       const editBtn = document.getElementById('edit-btn');
       const saveBtn = document.getElementById('save-btn');
       const cancelBtn = document.getElementById('cancel-btn');
-      const saveStatus = document.getElementById('save-status');
       const logoutBtn = document.getElementById('logout-btn');
 
-      // Загрузка данных
+      // Если это чужой профиль
+      if (!isOwnProfile) {
+        // Скрываем всё, что связано с редактированием
+        document.querySelectorAll('.avatar-actions, .avatar-btn, .edit-field').forEach(el => {
+          el.style.display = 'none';
+        });
+        editBtn.style.display = 'none';
+        logoutBtn.style.display = 'none';
+        
+        // Добавляем бейдж "просмотр"
+        if (!document.querySelector('.view-only-badge')) {
+          const badge = document.createElement('span');
+          badge.className = 'view-only-badge';
+          badge.textContent = 'только просмотр';
+          usernameDisplay.parentNode.insertBefore(badge, usernameDisplay.nextSibling);
+        }
+
+        // Загружаем данные чужого пользователя
+        const userKey = `fielsdown_user_${targetUsername.toLowerCase()}`;
+        const userData = JSON.parse(localStorage.getItem(userKey) || '{}');
+        
+        avatarPreview.src = userData.avatar || DEFAULT_AVATAR;
+        usernameDisplay.textContent = `b/${targetUsername}`;
+        bioDisplay.textContent = userData.bio || 'Нет описания.';
+        bioDisplay.style.display = 'block';
+        bioEdit.style.display = 'none';
+
+        // Блокируем интерактив
+        document.querySelectorAll('input, textarea, button').forEach(el => {
+          if (!el.classList.contains('back-link')) {
+            el.disabled = true;
+          }
+        });
+
+        return;
+      }
+
+      // === СТАРАЯ ЛОГИКА: свой профиль ===
+      if (!session || !session.isLoggedIn) {
+        alert('Вы не вошли в аккаунт!');
+        window.location.href = '/login.html';
+        return;
+      }
+
+      // Заполняем данные
       let currentAvatar = session.avatar || DEFAULT_AVATAR;
       const username = session.username || 'user';
       let currentBio = session.bio || 'Пока ничего не написал(а).';
@@ -367,7 +415,10 @@
         currentAvatar = DEFAULT_AVATAR;
       };
 
-      // === НОВОЕ: ЗАГРУЗКА ИЗ ГАЛЕРЕИ ===
+      // === СОХРАНЯЕМ ВСЮ СТАРУЮ ЛОГИКУ РЕДАКТИРОВАНИЯ ===
+      let originalData = { avatar: currentAvatar, bio: currentBio };
+
+      // Загрузка из галереи
       uploadBtn.addEventListener('click', () => {
         avatarFileInput.click();
       });
@@ -375,27 +426,24 @@
       avatarFileInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
         if (!file.type.startsWith('image/')) {
-          alert('Выберите изображение (JPG, PNG, GIF и т.д.)');
+          alert('Выберите изображение');
           return;
         }
-
         try {
           const dataUrl = await fileToDataUrl(file);
           avatarPreview.src = dataUrl;
-          currentAvatar = dataUrl; // сохранится как base64
-          avatarUrlInput.style.display = 'none'; // скрываем URL-поле
+          originalData.avatar = dataUrl;
+          avatarUrlInput.style.display = 'none';
         } catch (err) {
           alert('Не удалось загрузить изображение.');
-          console.error(err);
         }
       });
 
-      // === НОВОЕ: ВСТАВКА ПО URL ===
+      // Вставка по URL
       urlBtn.addEventListener('click', () => {
         avatarUrlInput.style.display = 'block';
-        avatarUrlInput.value = currentAvatar.startsWith('data:') ? '' : currentAvatar;
+        avatarUrlInput.value = originalData.avatar.startsWith('data:') ? '' : originalData.avatar;
         avatarUrlInput.focus();
       });
 
@@ -403,7 +451,7 @@
         const url = avatarUrlInput.value.trim();
         if (url && isValidUrl(url)) {
           avatarPreview.src = url;
-          currentAvatar = url;
+          originalData.avatar = url;
           avatarUrlInput.style.display = 'none';
         } else if (url) {
           alert('Неверный URL изображения.');
@@ -413,9 +461,9 @@
         }
       });
 
-      // === РЕДАКТИРОВАНИЕ ПРОФИЛЯ (старая логика — сохранена) ===
+      // Редактирование профиля
       editBtn.addEventListener('click', () => {
-        bioEdit.value = currentBio;
+        bioEdit.value = originalData.bio;
         bioDisplay.style.display = 'none';
         bioEdit.style.display = 'block';
         editBtn.style.display = 'none';
@@ -433,17 +481,17 @@
       });
 
       saveBtn.addEventListener('click', () => {
-        currentBio = bioEdit.value.trim();
+        originalData.bio = bioEdit.value.trim();
 
         const updatedSession = {
           ...session,
-          avatar: currentAvatar,
-          bio: currentBio,
+          avatar: originalData.avatar,
+          bio: originalData.bio,
           updatedAt: new Date().toISOString()
         };
         saveSession(updatedSession);
 
-        bioDisplay.textContent = currentBio || 'Пока ничего не написал(а).';
+        bioDisplay.textContent = originalData.bio || 'Пока ничего не написал(а).';
         bioDisplay.style.display = 'block';
         bioEdit.style.display = 'none';
         editBtn.style.display = 'inline-flex';
@@ -451,49 +499,25 @@
         cancelBtn.style.display = 'none';
         avatarUrlInput.style.display = 'none';
 
-        saveStatus.classList.add('show');
-        setTimeout(() => saveStatus.classList.remove('show'), 2000);
+        document.getElementById('save-status').classList.add('show');
+        setTimeout(() => document.getElementById('save-status').classList.remove('show'), 2000);
       });
 
       logoutBtn.addEventListener('click', () => {
         if (confirm('Выйти из аккаунта?')) {
           localStorage.removeItem(SESSION_KEY);
-          window.location.href = '/'"
-      });
-
-      // В profile.html, внутри <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const targetUser = urlParams.get('user');
-
-  if (targetUser) {
-    // Режим просмотра ЧУЖОГО профиля
-    const session = getSession(); // твоя функция из auth.js
-    const isOwn = session && session.username === targetUser;
-
-    if (!isOwn) {
-      // Скрываем кнопки редактирования
-      document.getElementById('edit-btn')?.style.display = 'none';
-      document.getElementById('logout-btn')?.style.display = 'none';
-      
-      // Загружаем данные пользователя
-      const userKey = `fielsdown_user_${targetUser.toLowerCase()}`;
-      const userData = JSON.parse(localStorage.getItem(userKey) || '{}');
-      
-      document.getElementById('username-display').textContent = `b/${targetUser}`;
-      document.getElementById('avatar-preview').src = userData.avatar || DEFAULT_AVATAR;
-      document.querySelector('.bio-display').textContent = userData.bio || 'Нет описания.';
-      
-      // Делаем профиль "только для чтения"
-      document.querySelectorAll('input, textarea, button').forEach(el => {
-        if (!el.classList.contains('back-link')) {
-          el.disabled = true;
-          el.style.opacity = '0.6';
+          window.location.href = '/';
         }
       });
     }
-  }
-});
+
+    // === ИНИЦИАЛИЗАЦИЯ ===
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetUser = urlParams.get('user');
+      
+      loadUserProfile(targetUser);
+    });
   </script>
 </body>
   </html>
