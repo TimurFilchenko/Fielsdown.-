@@ -617,24 +617,174 @@
           c.author === currentUsername ? { ...c, author: newNick } : c
         );
         localStorage.setItem('fielsdown_comments_v3', JSON.stringify(updatedComments));
-      } catch (e) { console.warn('Комментарии не обновлены:', e); }
 
-      // === 5. ОБНОВЛЯЕМ ИНТЕРФЕЙС ===
-      usernameDisplay.textContent = `b/${newNick}`;
+        // =============================================================================
+// ИЗМЕНЕНИЕ НИКА — ЧИСТАЯ, БЕЗОШИБОЧНАЯ РЕАЛИЗАЦИЯ
+// =============================================================================
 
-      // Выполняем оригинальное сохранение (био, аватар)
+(function () {
+  // Работает только в своём профиле (не при просмотре чужого)
+  if (window.location.search.includes('?user=')) return;
+
+  const usernameDisplay = document.getElementById('username-display');
+  if (!usernameDisplay) return;
+
+  const currentFullText = usernameDisplay.textContent;
+  if (!currentFullText.startsWith('b/')) return;
+
+  const currentUsername = currentFullText.substring(2);
+  const session = (() => {
+    try {
+      const raw = localStorage.getItem('fielsdown_session_v1');
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  })();
+
+  if (!session || session.username !== currentUsername) return;
+
+  // Создаём элементы
+  const nickLabel = document.createElement('div');
+  nickLabel.textContent = 'Изменить ник';
+  nickLabel.style.fontWeight = '600';
+  nickLabel.style.marginTop = '20px';
+  nickLabel.style.display = 'none';
+
+  const nickInput = document.createElement('input');
+  nickInput.type = 'text';
+  nickInput.value = currentUsername;
+  nickInput.placeholder = 'Введите новый ник';
+  nickInput.style.display = 'none';
+  nickInput.style.width = '100%';
+  nickInput.style.padding = '10px';
+  nickInput.style.margin = '8px 0';
+  nickInput.style.border = '1px solid #e0e0e0';
+  nickInput.style.borderRadius = '8px';
+  nickInput.style.fontSize = '15px';
+  nickInput.maxLength = 20;
+
+  // Вставляем после отображаемого ника
+  usernameDisplay.parentNode.insertBefore(nickLabel, usernameDisplay.nextSibling);
+  usernameDisplay.parentNode.insertBefore(nickInput, nickLabel.nextSibling);
+
+  // Обработчики кнопок
+  const editBtn = document.getElementById('edit-btn');
+  const saveBtn = document.getElementById('save-btn');
+  const cancelBtn = document.getElementById('cancel-btn');
+
+  if (!editBtn || !saveBtn || !cancelBtn) return;
+
+  // Сохраняем оригинальные обработчики
+  const originalEditClick = editBtn.onclick;
+  const originalSaveClick = saveBtn.onclick;
+  const originalCancelClick = cancelBtn.onclick;
+
+  // При редактировании — показываем поля
+  editBtn.onclick = function () {
+    if (originalEditClick) originalEditClick();
+    nickLabel.style.display = 'block';
+    nickInput.style.display = 'block';
+  };
+
+  // При отмене — скрываем
+  cancelBtn.onclick = function () {
+    if (originalCancelClick) originalCancelClick();
+    nickLabel.style.display = 'none';
+    nickInput.style.display = 'none';
+  };
+
+  // При сохранении — обновляем всё
+  saveBtn.onclick = function () {
+    const newNick = nickInput.value.trim();
+    if (!newNick || newNick === currentUsername) {
       if (originalSaveClick) originalSaveClick();
+      nickLabel.style.display = 'none';
       nickInput.style.display = 'none';
+      return;
+    }
 
-      // === 6. УВЕДОМЛЕНИЕ ===
-      const status = document.getElementById('save-status');
-      if (status) {
-        status.textContent = '✅ Ник успешно изменён на всех страницах!';
-        status.classList.add('show');
-        setTimeout(() => status.classList.remove('show'), 3000);
-      }
-    };
-  }
+    // Валидация
+    if (newNick.length < 3 || newNick.length > 20) {
+      alert('Ник должен быть от 3 до 20 символов.');
+      return;
+    }
+    if (!/^[a-zA-Z0-9_]+$/.test(newNick)) {
+      alert('Разрешены только латинские буквы, цифры и символ подчёркивания (_).');
+      return;
+    }
+
+    // Проверка занятости
+    const checkKey = `fielsdown_user_${newNick.toLowerCase()}`;
+    if (localStorage.getItem(checkKey)) {
+      alert('Этот ник уже занят. Выберите другой.');
+      return;
+    }
+
+    // === 1. Обновляем сессию ===
+    session.username = newNick;
+    try {
+      localStorage.setItem('fielsdown_session_v1', JSON.stringify(session));
+    } catch (e) {
+      alert('Не удалось сохранить сессию.');
+      return;
+    }
+
+    // === 2. Обновляем данные пользователя ===
+    const oldKey = `fielsdown_user_${currentUsername.toLowerCase()}`;
+    const newKey = `fielsdown_user_${newNick.toLowerCase()}`;
+    let userData = {};
+    try {
+      const raw = localStorage.getItem(oldKey);
+      userData = raw ? JSON.parse(raw) : {};
+    } catch (e) {}
+    userData.username = newNick;
+    try {
+      localStorage.setItem(newKey, JSON.stringify(userData));
+      localStorage.removeItem(oldKey);
+    } catch (e) {
+      alert('Не удалось обновить данные пользователя.');
+      return;
+    }
+
+    // === 3. Обновляем посты ===
+    try {
+      const postsRaw = localStorage.getItem('fielsdown_posts_v2') || '[]';
+      const posts = JSON.parse(postsRaw);
+      const updatedPosts = posts.map(p => 
+        p.author === currentUsername ? { ...p, author: newNick } : p
+      );
+      localStorage.setItem('fielsdown_posts_v2', JSON.stringify(updatedPosts));
+    } catch (e) {}
+
+    // === 4. Обновляем комментарии ===
+    try {
+      const commentsRaw = localStorage.getItem('fielsdown_comments_v3') || '[]';
+      const comments = JSON.parse(commentsRaw);
+      const updatedComments = comments.map(c => 
+        c.author === currentUsername ? { ...c, author: newNick } : c
+      );
+      localStorage.setItem('fielsdown_comments_v3', JSON.stringify(updatedComments));
+    } catch (e) {}
+
+    // === 5. Обновляем интерфейс ===
+    usernameDisplay.textContent = `b/${newNick}`;
+
+    // Выполняем оригинальное сохранение (био, аватар)
+    if (originalSaveClick) originalSaveClick();
+
+    // Скрываем поля
+    nickLabel.style.display = 'none';
+    nickInput.style.display = 'none';
+
+    // Статус
+    const status = document.getElementById('save-status');
+    if (status) {
+      status.textContent = '✅ Ник успешно изменён!';
+      status.classList.add('show');
+      setTimeout(() => status.classList.remove('show'), 2000);
+    }
+  };
 })();
   </script>
 </body>
