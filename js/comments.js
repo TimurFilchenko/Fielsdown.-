@@ -407,3 +407,46 @@ function initComments(boardName) {
 window.FielsdownComments = {
   init: initComments
 };
+
+// =============================================================================
+// БЛОКИРОВКА КОММЕНТАРИЕВ ДЛЯ НЕЗАРЕГИСТРИРОВАННЫХ
+// =============================================================================
+
+(function () {
+  const originalInit = window.FielsdownComments.init;
+  window.FielsdownComments.init = function (boardName) {
+    // Проверяем сессию
+    const session = (() => {
+      try {
+        const raw = localStorage.getItem('fielsdown_session_v1');
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) {
+        return null;
+      }
+    })();
+
+    if (!session || !session.isLoggedIn) {
+      // Создаём контейнер, но без формы
+      let container = document.getElementById('comments-root');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'comments-root';
+        const section = document.createElement('div');
+        section.className = 'comments-section';
+        section.innerHTML = `
+          <div class="comments-header">комментарий Комментарии</div>
+          <div style="background:#fafafa; border:1px solid #e0e0e0; border-radius:12px; padding:20px; margin:24px 0; color:#e53935;">
+            🔒 Только зарегистрированные пользователи могут оставлять комментарии.<br>
+            <a href="/register.html" style="color:#0077ff; font-weight:600;">Зарегистрируйтесь</a> или <a href="/login.html" style="color:#0077ff; font-weight:600;">войдите</a> в аккаунт.
+          </div>
+          <div id="comments-list"></div>
+        `;
+        document.querySelector('.container')?.appendChild(section) || document.body.appendChild(section);
+      }
+      return;
+    }
+
+    // Если залогинен — запускаем обычную логику
+    return originalInit.call(this, boardName);
+  };
+})();
