@@ -1,19 +1,17 @@
 /* =============================================================================
-   COMMENTS.JS — Расширенная система комментариев для board.html
-   Поддержка: ответы, изображения, видео, галерея телефона
+   COMMENTS.JS — Полная система комментариев для Fielsdown
+   Автор: пользователь Fielsdown
+   Цель: бесконечные ответы, медиа, упоминания, профили — всё в одном файле.
    ============================================================================= */
 
 // === Константы ===
-const COMMENTS_STORAGE_KEY = 'fielsdown_comments_v2'; // v2 — поддержка медиа
+const COMMENTS_STORAGE_KEY = 'fielsdown_comments_v3';
 const SESSION_KEY = 'fielsdown_session_v1';
 const DEFAULT_AVATAR = 'https://static.cdninstagram.com/rsrc.php/v3/yo/r/qhYsMwhQJy-.png';
 
 // === Вспомогательные функции ===
 
-/**
- * Получает сессию пользователя
- */
-function getCommentSession() {
+function getSession() {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
     return raw ? JSON.parse(raw) : null;
@@ -22,9 +20,6 @@ function getCommentSession() {
   }
 }
 
-/**
- * Получает все комментарии для доски
- */
 function getCommentsForBoard(boardName) {
   try {
     const raw = localStorage.getItem(COMMENTS_STORAGE_KEY);
@@ -35,10 +30,7 @@ function getCommentsForBoard(boardName) {
   }
 }
 
-/**
- * Сохраняет комментарий
- */
-function saveCommentToStorage(comment) {
+function saveComment(comment) {
   try {
     const all = JSON.parse(localStorage.getItem(COMMENTS_STORAGE_KEY) || '[]');
     all.push(comment);
@@ -48,9 +40,6 @@ function saveCommentToStorage(comment) {
   }
 }
 
-/**
- * Конвертирует File в Data URL (base64)
- */
 function fileToDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -60,24 +49,10 @@ function fileToDataUrl(file) {
   });
 }
 
-/**
- * Проверяет, является ли URL изображением
- */
-function isImage(type) {
-  return type.startsWith('image/');
-}
+function isImage(type) { return type.startsWith('image/'); }
+function isVideo(type) { return type.startsWith('video/'); }
 
-/**
- * Проверяет, является ли URL видео
- */
-function isVideo(type) {
-  return type.startsWith('video/');
-}
-
-/**
- * Форматирует дату
- */
-function formatCommentTime(dateStr) {
+function formatTime(dateStr) {
   const date = new Date(dateStr);
   return date.toLocaleString('ru-RU', {
     day: '2-digit',
@@ -87,321 +62,348 @@ function formatCommentTime(dateStr) {
   });
 }
 
-// === Генерация HTML для комментария ===
-function renderCommentElement(comment, isReply = false) {
-  const session = getCommentSession();
-  const isAuthor = session && session.username === comment.author;
-  
-  let mediaHtml = '';
-  if (comment.mediaUrl) {
-    if (isImage(comment.mediaType)) {
-      mediaHtml = `<img src="${comment.mediaUrl}" class="comment-media" alt="Изображение">`;
-    } else if (isVideo(comment.mediaType)) {
-      mediaHtml = `
-        <video controls class="comment-media">
-          <source src="${comment.mediaUrl}" type="${comment.mediaType}">
-          Ваш браузер не поддерживает видео.
-        </video>
-      `;
-    }
-  }
+// === Генерация HTML комментария ===
+function renderComment(comment, isReply = false) {
+  const indentClass = isReply ? 'comment-reply' : '';
+  const mediaHtml = comment.mediaUrl ? (
+    isImage(comment.mediaType) ?
+      `<img src="${comment.mediaUrl}" class="comment-media">` :
+    isVideo(comment.mediaType) ?
+      `<video controls class="comment-media"><source src="${comment.mediaUrl}" type="${comment.mediaType}"></video>` :
+    ''
+  ) : '';
 
-  const indent = isReply ? 'reply-indent' : '';
-  
   return `
-    <div class="comment ${indent}" data-id="${comment.id}">
+    <div class="comment ${indentClass}" data-id="${comment.id}">
       <div class="comment-header">
+        <img src="${comment.avatar || DEFAULT_AVATAR}" class="comment-avatar">
         <span class="comment-author">b/${comment.author || 'anonymous'}</span>
-        <span class="comment-time">${formatCommentTime(comment.createdAt)}</span>
+        <span class="comment-time">${formatTime(comment.createdAt)}</span>
         <button class="reply-btn" data-id="${comment.id}">ответить</button>
       </div>
-      <div class="comment-content">${comment.content || ''}</div>
+      <div class="comment-content" data-text="${comment.content || ''}">${comment.content || ''}</div>
       ${mediaHtml}
-      <div class="reply-form-container" id="reply-form-${comment.id}" style="display:none;"></div>
+      <div class="reply-form" id="reply-form-${comment.id}"></div>
     </div>
   `;
 }
 
-// === Инициализация системы комментариев ===
-function initCommentsSystem(boardName) {
+// === Парсинг упоминаний ===
+function parseMentions(text) {
+  return text.replace(/@([bB]\/[a-zA-Z0-9_]+)/g, (match, username) => {
+    const clean = username.replace(/^b\//i, '');
+    return `<a href="/profile.html?user=${encodeURIComponent(clean)}" class="comment-mention">@${username}</a>`;
+  });
+}
+
+// === Инициализация ===
+function initComments(boardName) {
   if (!boardName) return;
 
-  // Встроенные стили (как <style> в HTML)
-  const style = document.createElement('style');
-  style.textContent = `
-    .comments-section { margin-top: 32px; }
-    .comments-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 20px;
-      font-weight: 700;
-      font-size: 18px;
-      color: #0077ff;
-    }
-    .comment {
-      background: #fafafa;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
-      border: 1px solid #e0e0e0;
-    }
-    .reply-indent {
-      margin-left: 24px;
-      border-left: 2px solid #0077ff;
-      padding-left: 16px;
-    }
-    .comment-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-    .comment-author {
-      font-weight: 600;
-      color: #0077ff;
-    }
-    .comment-time {
-      color: #999;
-      font-size: 13px;
-    }
-    .reply-btn {
-      background: #e0e0e0;
-      border: none;
-      border-radius: 4px;
-      padding: 4px 8px;
-      font-size: 12px;
-      cursor: pointer;
-      margin-left: auto;
-    }
-    .reply-btn:hover {
-      background: #d0d0d0;
-    }
-    .comment-media {
-      max-width: 100%;
-      border-radius: 8px;
-      margin-top: 12px;
-    }
-    video.comment-media {
-      width: 100%;
-      border-radius: 8px;
-    }
-    .comment-form {
-      background: #f5f5f5;
-      border-radius: 12px;
-      padding: 20px;
-      margin: 24px 0;
-    }
-    .form-group {
-      margin-bottom: 16px;
-    }
-    .form-control {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 15px;
-    }
-    textarea.form-control {
-      min-height: 100px;
-      resize: vertical;
-    }
-    .media-preview {
-      margin-top: 12px;
-      max-width: 100%;
-      border-radius: 8px;
-    }
-    .btn {
-      padding: 10px 20px;
-      background: #0077ff;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .btn:hover {
-      background: #005fcc;
-    }
-    .error { color: #e53935; font-size: 14px; margin-top: 8px; }
-  `;
-  document.head.appendChild(style);
+  // === ВСТРОЕННЫЕ СТИЛИ ===
+  if (!document.getElementById('fielsdown-comments-styles')) {
+    const style = document.createElement('style');
+    style.id = 'fielsdown-comments-styles';
+    style.textContent = `
+      .comments-section { margin: 32px 0; }
+      .comments-header {
+        font-size: 18px;
+        font-weight: 700;
+        color: #0077ff;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .comment {
+        background: #fafafa;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+      .comment-reply {
+        margin-left: 24px;
+        border-left: 2px solid #0077ff;
+        padding-left: 16px;
+      }
+      .comment-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .comment-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #f5f5f5;
+      }
+      .comment-author {
+        font-weight: 600;
+        color: #0077ff;
+      }
+      .comment-time {
+        color: #999;
+        font-size: 13px;
+        margin-left: auto;
+      }
+      .reply-btn {
+        background: #e0e0e0;
+        border: none;
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .reply-btn:hover { background: #d0d0d0; }
+      .comment-content {
+        line-height: 1.5;
+        white-space: pre-wrap;
+      }
+      .comment-mention {
+        color: #0077ff !important;
+        text-decoration: none;
+        font-weight: 600;
+        border-bottom: 1px dotted #0077ff;
+      }
+      .comment-mention:hover {
+        background: rgba(0,119,255,0.08);
+        border-radius: 2px;
+      }
+      .comment-media {
+        max-width: 100%;
+        border-radius: 8px;
+        margin-top: 12px;
+      }
+      video.comment-media { width: 100%; }
+      .comment-form {
+        background: #f5f5f5;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 24px 0;
+      }
+      .form-group { margin-bottom: 16px; }
+      .form-control {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 15px;
+      }
+      textarea.form-control { min-height: 100px; resize: vertical; }
+      .btn {
+        padding: 10px 20px;
+        background: #0077ff;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .btn:hover { background: #005fcc; }
+      .error { color: #e53935; font-size: 14px; margin-top: 8px; }
+      #attach-media-btn {
+        background: #666;
+        font-size: 14px;
+        padding: 8px 16px;
+      }
+      #attach-media-btn:hover { background: #555; }
+    `;
+    document.head.appendChild(style);
+  }
 
-  // Контейнер для комментариев (если ещё не создан)
-  let commentsContainer = document.getElementById('comments-container');
-  if (!commentsContainer) {
-    commentsContainer = document.createElement('div');
-    commentsContainer.id = 'comments-container';
+  // === КОНТЕЙНЕР ===
+  let container = document.getElementById('comments-root');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'comments-root';
     const section = document.createElement('div');
     section.className = 'comments-section';
     section.innerHTML = `
       <div class="comments-header">комментарий Комментарии</div>
-      <div class="comment-form" id="main-comment-form">
+      <div class="comment-form">
         <div class="form-group">
-          <textarea class="form-control" id="main-comment-content" placeholder="Напишите комментарий..."></textarea>
-          <div class="error" id="main-comment-error"></div>
+          <textarea class="form-control" id="main-comment" placeholder="Напишите комментарий..."></textarea>
+          <div class="error" id="main-error"></div>
         </div>
         <div class="form-group">
-          <input type="file" id="main-media-input" accept="image/*,video/*" style="display:none;">
+          <input type="file" id="main-media" accept="image/*,video/*" style="display:none;">
           <button type="button" class="btn" id="attach-media-btn">📎 Прикрепить фото/видео</button>
           <div id="media-preview"></div>
         </div>
-        <button type="button" class="btn" id="submit-main-comment">Оставить комментарий</button>
+        <button class="btn" id="submit-main">Оставить комментарий</button>
       </div>
+      <div id="comments-list"></div>
     `;
-    section.appendChild(commentsContainer);
     document.querySelector('.container')?.appendChild(section) || document.body.appendChild(section);
+    container = document.getElementById('comments-list');
   }
 
-  // Загрузка комментариев
+  // === ЗАГРУЗКА КОММЕНТАРИЕВ ===
   function loadComments() {
     const comments = getCommentsForBoard(boardName);
     const topLevel = comments.filter(c => !c.parentId);
     let html = '';
 
     if (topLevel.length === 0) {
-      commentsContainer.innerHTML = '<div class="no-comments" style="color:#999;padding:20px 0;">Пока нет комментариев.</div>';
+      container.innerHTML = '<div style="color:#999;padding:20px 0;">Пока нет комментариев.</div>';
     } else {
-      topLevel.forEach(top => {
-        html += renderCommentElement(top);
-        const replies = comments.filter(c => c.parentId === top.id);
-        replies.forEach(reply => {
-          html += renderCommentElement(reply, true);
-        });
-      });
-      commentsContainer.innerHTML = html;
-    }
+      const renderReplies = (parentId) => {
+        return comments
+          .filter(c => c.parentId === parentId)
+          .map(reply => renderComment(reply, true) + renderReplies(reply.id))
+          .join('');
+      };
 
-    // Навешиваем обработчики ответов
-    document.querySelectorAll('.reply-btn').forEach(btn => {
-      btn.addEventListener('click', function () {
-        const commentId = this.getAttribute('data-id');
-        const formContainer = document.getElementById(`reply-form-${commentId}`);
-        if (formContainer.style.display === 'block') {
-          formContainer.style.display = 'none';
-          return;
+      html = topLevel
+        .map(top => renderComment(top) + renderReplies(top.id))
+        .join('');
+
+      container.innerHTML = html;
+
+      // Парсим упоминания
+      document.querySelectorAll('.comment-content').forEach(el => {
+        if (!el.dataset.parsed) {
+          el.innerHTML = parseMentions(el.dataset.text || el.textContent);
+          el.dataset.parsed = 'true';
         }
-
-        formContainer.style.display = 'block';
-        formContainer.innerHTML = `
-          <div class="comment-form" style="margin-top:16px;">
-            <div class="form-group">
-              <textarea class="form-control" placeholder="Ваш ответ..." id="reply-text-${commentId}"></textarea>
-              <div class="error" id="reply-error-${commentId}"></div>
-            </div>
-            <button class="btn" onclick="submitReply('${commentId}')">Ответить</button>
-          </div>
-        `;
       });
-    });
+    }
   }
 
-  // Обработчик основной формы
+  // === МЕДИА ===
+  let mainMedia = null;
   document.getElementById('attach-media-btn')?.addEventListener('click', () => {
-    document.getElementById('main-media-input').click();
+    document.getElementById('main-media').click();
   });
 
-  let mainMediaData = null;
-  document.getElementById('main-media-input')?.addEventListener('change', async (e) => {
+  document.getElementById('main-media')?.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     const preview = document.getElementById('media-preview');
     if (!file) {
-      mainMediaData = null;
+      mainMedia = null;
       preview.innerHTML = '';
       return;
     }
 
     if (!isImage(file.type) && !isVideo(file.type)) {
-      alert('Поддерживаются только изображения и видео.');
+      alert('Только фото и видео.');
       return;
     }
 
     try {
-      const dataUrl = await fileToDataUrl(file);
-      mainMediaData = { url: dataUrl, type: file.type };
-      if (isImage(file.type)) {
-        preview.innerHTML = `<img src="${dataUrl}" class="media-preview">`;
-      } else {
-        preview.innerHTML = `<video controls class="media-preview"><source src="${dataUrl}" type="${file.type}"></video>`;
-      }
+      const url = await fileToDataUrl(file);
+      mainMedia = { url, type: file.type };
+      preview.innerHTML = isImage(file.type) ?
+        `<img src="${url}" class="comment-media">` :
+        `<video controls class="comment-media"><source src="${url}" type="${file.type}"></video>`;
     } catch (err) {
-      alert('Не удалось загрузить файл.');
+      alert('Ошибка загрузки.');
     }
   });
 
-  document.getElementById('submit-main-comment')?.addEventListener('click', async () => {
-    const content = document.getElementById('main-comment-content')?.value.trim() || '';
-    const errorEl = document.getElementById('main-comment-error');
+  // === ОТПРАВКА ===
+  document.getElementById('submit-main')?.addEventListener('click', () => {
+    const text = document.getElementById('main-comment')?.value.trim() || '';
+    const error = document.getElementById('main-error');
 
-    if (!content && !mainMediaData) {
-      errorEl.textContent = 'Добавьте текст или медиа.';
+    if (!text && !mainMedia) {
+      error.textContent = 'Добавьте текст или медиа.';
       return;
     }
 
-    errorEl.textContent = '';
-
-    const session = getCommentSession();
+    error.textContent = '';
+    const session = getSession();
     const author = session?.username || 'anonymous';
+    const avatar = session?.avatar || DEFAULT_AVATAR;
 
-    const newComment = {
+    const comment = {
       id: Date.now().toString(36),
       board: boardName,
-      author: author,
-      content: content,
+      author,
+      avatar,
+      content: text,
       parentId: null,
       createdAt: new Date().toISOString(),
-      mediaUrl: mainMediaData?.url || null,
-      mediaType: mainMediaData?.type || null
+      mediaUrl: mainMedia?.url || null,
+      mediaType: mainMedia?.type || null
     };
 
     try {
-      saveCommentToStorage(newComment);
-      mainMediaData = null;
-      document.getElementById('main-comment-content').value = '';
+      saveComment(comment);
+      mainMedia = null;
+      document.getElementById('main-comment').value = '';
       document.getElementById('media-preview').innerHTML = '';
       loadComments();
     } catch (err) {
-      errorEl.textContent = 'Ошибка отправки.';
+      error.textContent = 'Ошибка отправки.';
     }
   });
 
-  // Глобальная функция для ответов (доступна из HTML)
-  window.submitReply = async function (parentId) {
-    const content = document.getElementById(`reply-text-${parentId}`)?.value.trim();
-    const errorEl = document.getElementById(`reply-error-${parentId}`);
+  // === ОТВЕТЫ ===
+  window.submitReply = async function(parentId) {
+    const text = document.getElementById(`reply-text-${parentId}`)?.value.trim();
+    const error = document.getElementById(`reply-error-${parentId}`);
 
-    if (!content) {
-      errorEl.textContent = 'Текст ответа не может быть пустым.';
+    if (!text) {
+      error.textContent = 'Текст не может быть пустым.';
       return;
     }
 
-    errorEl.textContent = '';
-
-    const session = getCommentSession();
+    error.textContent = '';
+    const session = getSession();
     const author = session?.username || 'anonymous';
+    const avatar = session?.avatar || DEFAULT_AVATAR;
 
-    const newComment = {
+    const comment = {
       id: Date.now().toString(36),
       board: boardName,
-      author: author,
-      content: content,
+      author,
+      avatar,
+      content: text,
       parentId: parentId,
       createdAt: new Date().toISOString()
     };
 
     try {
-      saveCommentToStorage(newComment);
+      saveComment(comment);
       loadComments();
     } catch (err) {
-      errorEl.textContent = 'Ошибка отправки.';
+      error.textContent = 'Ошибка отправки.';
     }
   };
 
-  // Загружаем комментарии
+  // === КЛИК ПО "ОТВЕТИТЬ" ===
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('reply-btn')) {
+      const id = e.target.getAttribute('data-id');
+      const form = document.getElementById(`reply-form-${id}`);
+      if (form.innerHTML) {
+        form.innerHTML = '';
+        return;
+      }
+
+      const author = e.target.closest('.comment').querySelector('.comment-author').textContent.trim();
+      form.innerHTML = `
+        <div class="comment-form" style="margin-top:16px;">
+          <div class="form-group">
+            <textarea class="form-control" placeholder="Ваш ответ..." id="reply-text-${id}">@${author} </textarea>
+            <div class="error" id="reply-error-${id}"></div>
+          </div>
+          <button class="btn" onclick="submitReply('${id}')">Ответить</button>
+        </div>
+      `;
+      document.getElementById(`reply-text-${id}`).focus();
+    }
+  });
+
+  // === ЗАПУСК ===
   loadComments();
 }
 
-// === Экспорт для использования в board.html ===
+// === ЭКСПОРТ ===
 window.FielsdownComments = {
-  init: initCommentsSystem
+  init: initComments
 };
