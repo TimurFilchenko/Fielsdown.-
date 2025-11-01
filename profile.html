@@ -92,7 +92,6 @@
       border-color: var(--accent);
     }
 
-    /* === НОВОЕ: кнопки смены аватарки (сохранены) === */
     .avatar-actions {
       display: flex;
       gap: 12px;
@@ -238,14 +237,22 @@
       opacity: 1;
     }
 
-    /* === НОВОЕ: режим просмотра === */
-    .view-only-badge {
-      background: #e0e0e0;
-      color: #666;
-      font-size: 13px;
-      padding: 4px 10px;
-      border-radius: 12px;
-      margin-left: 12px;
+    /* === НОВОЕ: стили для смены ника === */
+    #nickname-edit-section {
+      width: 100%;
+      margin-top: 16px;
+    }
+    #nickname-edit-section label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    #nickname-edit-section input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 15px;
     }
   </style>
 </head>
@@ -259,7 +266,6 @@
     <div class="profile-card">
       <div class="avatar-section">
         <img id="avatar-preview" class="avatar-preview" alt="Аватар" />
-        <!-- Кнопки смены аватарки (сохранены) -->
         <div class="avatar-actions">
           <button id="upload-btn" class="avatar-btn">🖼️ Загрузить из галереи</button>
           <button id="url-btn" class="avatar-btn">🔗 Вставить URL</button>
@@ -275,6 +281,12 @@
 
       <div class="username-display" id="username-display">b/...</div>
 
+      <!-- НОВОЕ: секция смены ника (изначально скрыта) -->
+      <div id="nickname-edit-section" style="display:none;">
+        <label>Изменить ник</label>
+        <input type="text" id="nickname-input" placeholder="Новый ник" maxlength="20" />
+      </div>
+
       <div class="form-group">
         <label>О себе</label>
         <div id="bio-display" class="bio-display">Загрузка...</div>
@@ -286,7 +298,6 @@
         ></textarea>
       </div>
 
-      <!-- Кнопки управления (сохранены) -->
       <div class="actions">
         <button id="edit-btn" class="btn btn-secondary">✏️ Редактировать профиль</button>
         <button id="save-btn" class="btn btn-primary" style="display: none;">✅ Сохранить</button>
@@ -300,11 +311,11 @@
   </div>
 
   <script>
-    // === Константы (сохранены) ===
+    // === Константы ===
     const SESSION_KEY = 'fielsdown_session_v1';
     const DEFAULT_AVATAR = 'https://static.cdninstagram.com/rsrc.php/v3/yo/r/qhYsMwhQJy-.png';
 
-    // === Функции (сохранены) ===
+    // === Функции ===
     function getSession() {
       const raw = localStorage.getItem(SESSION_KEY);
       if (!raw) return null;
@@ -338,11 +349,15 @@
       });
     }
 
-    // === НОВОЕ: функция загрузки данных пользователя (своего или чужого) ===
-    function loadUserProfile(targetUsername = null) {
+    // === Инициализация ===
+    document.addEventListener('DOMContentLoaded', () => {
       const session = getSession();
-      const isOwnProfile = !targetUsername || (session && session.username === targetUsername);
-      
+      if (!session || !session.isLoggedIn) {
+        alert('Вы не вошли в аккаунт!');
+        window.location.href = '/login.html';
+        return;
+      }
+
       // Элементы DOM
       const avatarPreview = document.getElementById('avatar-preview');
       const avatarFileInput = document.getElementById('avatar-file-input');
@@ -356,69 +371,25 @@
       const saveBtn = document.getElementById('save-btn');
       const cancelBtn = document.getElementById('cancel-btn');
       const logoutBtn = document.getElementById('logout-btn');
-
-      // Если это чужой профиль
-      if (!isOwnProfile) {
-        // Скрываем всё, что связано с редактированием
-        document.querySelectorAll('.avatar-actions, .avatar-btn, .edit-field').forEach(el => {
-          el.style.display = 'none';
-        });
-        editBtn.style.display = 'none';
-        logoutBtn.style.display = 'none';
-        
-        // Добавляем бейдж "просмотр"
-        if (!document.querySelector('.view-only-badge')) {
-          const badge = document.createElement('span');
-          badge.className = 'view-only-badge';
-          badge.textContent = 'только просмотр';
-          usernameDisplay.parentNode.insertBefore(badge, usernameDisplay.nextSibling);
-        }
-
-        // Загружаем данные чужого пользователя
-        const userKey = `fielsdown_user_${targetUsername.toLowerCase()}`;
-        const userData = JSON.parse(localStorage.getItem(userKey) || '{}');
-        
-        avatarPreview.src = userData.avatar || DEFAULT_AVATAR;
-        usernameDisplay.textContent = `b/${targetUsername}`;
-        bioDisplay.textContent = userData.bio || 'Нет описания.';
-        bioDisplay.style.display = 'block';
-        bioEdit.style.display = 'none';
-
-        // Блокируем интерактив
-        document.querySelectorAll('input, textarea, button').forEach(el => {
-          if (!el.classList.contains('back-link')) {
-            el.disabled = true;
-          }
-        });
-
-        return;
-      }
-
-      // === СТАРАЯ ЛОГИКА: свой профиль ===
-      if (!session || !session.isLoggedIn) {
-        alert('Вы не вошли в аккаунт!');
-        window.location.href = '/login.html';
-        return;
-      }
+      const nicknameSection = document.getElementById('nickname-edit-section');
+      const nicknameInput = document.getElementById('nickname-input');
 
       // Заполняем данные
-      let currentAvatar = session.avatar || DEFAULT_AVATAR;
+      const avatar = session.avatar || DEFAULT_AVATAR;
       const username = session.username || 'user';
-      let currentBio = session.bio || 'Пока ничего не написал(а).';
+      const bio = session.bio || 'Пока ничего не написал(а).';
 
-      avatarPreview.src = currentAvatar;
+      avatarPreview.src = avatar;
       usernameDisplay.textContent = `b/${username}`;
-      bioDisplay.textContent = currentBio;
+      bioDisplay.textContent = bio;
 
       avatarPreview.onerror = () => {
         avatarPreview.src = DEFAULT_AVATAR;
-        currentAvatar = DEFAULT_AVATAR;
       };
 
-      // === СОХРАНЯЕМ ВСЮ СТАРУЮ ЛОГИКУ РЕДАКТИРОВАНИЯ ===
-      let originalData = { avatar: currentAvatar, bio: currentBio };
+      // === СТАРАЯ ЛОГИКА: аватарка и описание ===
+      let originalData = { avatar, bio };
 
-      // Загрузка из галереи
       uploadBtn.addEventListener('click', () => {
         avatarFileInput.click();
       });
@@ -440,10 +411,9 @@
         }
       });
 
-      // Вставка по URL
       urlBtn.addEventListener('click', () => {
         avatarUrlInput.style.display = 'block';
-        avatarUrlInput.value = originalData.avatar.startsWith('data:') ? '' : originalData.avatar;
+        avatarUrlInput.value = originalData.avatar.startsWith('') ? '' : originalData.avatar;
         avatarUrlInput.focus();
       });
 
@@ -461,7 +431,7 @@
         }
       });
 
-      // Редактирование профиля
+      // === СТАРАЯ ЛОГИКА: редактирование профиля ===
       editBtn.addEventListener('click', () => {
         bioEdit.value = originalData.bio;
         bioDisplay.style.display = 'none';
@@ -469,6 +439,8 @@
         editBtn.style.display = 'none';
         saveBtn.style.display = 'inline-flex';
         cancelBtn.style.display = 'inline-flex';
+        nicknameSection.style.display = 'block'; // Показываем смену ника
+        nicknameInput.value = username;
       });
 
       cancelBtn.addEventListener('click', () => {
@@ -478,26 +450,74 @@
         saveBtn.style.display = 'none';
         cancelBtn.style.display = 'none';
         avatarUrlInput.style.display = 'none';
+        nicknameSection.style.display = 'none'; // Скрываем смену ника
       });
 
       saveBtn.addEventListener('click', () => {
-        originalData.bio = bioEdit.value.trim();
+        // === НОВОЕ: обработка смены ника ===
+        const newUsername = nicknameInput.value.trim();
+        const currentUsername = username;
+        if (newUsername && newUsername !== currentUsername) {
+          if (newUsername.length < 3 || newUsername.length > 20 || !/^[a-zA-Z0-9_]+$/.test(newUsername)) {
+            alert('Ник: 3–20 латинских символов, цифры, _');
+          } else if (localStorage.getItem(`fielsdown_user_${newUsername.toLowerCase()}`)) {
+            alert('Этот ник уже занят.');
+          } else {
+            // Обновляем сессию
+            const updatedSession = {
+              ...session,
+              username: newUsername,
+              avatar: originalData.avatar,
+              bio: bioEdit.value.trim(),
+              updatedAt: new Date().toISOString()
+            };
+            saveSession(updatedSession);
 
-        const updatedSession = {
-          ...session,
-          avatar: originalData.avatar,
-          bio: originalData.bio,
-          updatedAt: new Date().toISOString()
-        };
-        saveSession(updatedSession);
+            // Обновляем данные пользователя
+            const oldKey = `fielsdown_user_${currentUsername.toLowerCase()}`;
+            const newKey = `fielsdown_user_${newUsername.toLowerCase()}`;
+            const userData = JSON.parse(localStorage.getItem(oldKey) || '{}');
+            userData.username = newUsername;
+            localStorage.setItem(newKey, JSON.stringify(userData));
+            localStorage.removeItem(oldKey);
 
-        bioDisplay.textContent = originalData.bio || 'Пока ничего не написал(а).';
+            // Обновляем посты
+            try {
+              const posts = JSON.parse(localStorage.getItem('fielsdown_posts_v2') || '[]');
+              const updatedPosts = posts.map(p => p.author === currentUsername ? {...p, author: newUsername} : p);
+              localStorage.setItem('fielsdown_posts_v2', JSON.stringify(updatedPosts));
+            } catch (e) {}
+
+            // Обновляем комментарии
+            try {
+              const comments = JSON.parse(localStorage.getItem('fielsdown_comments_v3') || '[]');
+              const updatedComments = comments.map(c => c.author === currentUsername ? {...c, author: newUsername} : c);
+              localStorage.setItem('fielsdown_comments_v3', JSON.stringify(updatedComments));
+            } catch (e) {}
+
+            // Обновляем интерфейс
+            usernameDisplay.textContent = `b/${newUsername}`;
+          }
+        } else {
+          // Сохраняем без смены ника
+          const updatedSession = {
+            ...session,
+            avatar: originalData.avatar,
+            bio: bioEdit.value.trim(),
+            updatedAt: new Date().toISOString()
+          };
+          saveSession(updatedSession);
+        }
+
+        // Обновляем отображение
+        bioDisplay.textContent = bioEdit.value.trim() || 'Пока ничего не написал(а).';
         bioDisplay.style.display = 'block';
         bioEdit.style.display = 'none';
         editBtn.style.display = 'inline-flex';
         saveBtn.style.display = 'none';
         cancelBtn.style.display = 'none';
         avatarUrlInput.style.display = 'none';
+        nicknameSection.style.display = 'none';
 
         document.getElementById('save-status').classList.add('show');
         setTimeout(() => document.getElementById('save-status').classList.remove('show'), 2000);
@@ -509,102 +529,7 @@
           window.location.href = '/';
         }
       });
-    }
-
-    // === ИНИЦИАЛИЗАЦИЯ ===
-    document.addEventListener('DOMContentLoaded', () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const targetUser = urlParams.get('user');
-      
-      loadUserProfile(targetUser);
     });
-
-      // Добавляем поле "Изменить ник" — простая и надёжная реализация
-setTimeout(() => {
-  const usernameEl = document.getElementById('username-display');
-  if (!usernameEl || usernameEl.textContent.indexOf('b/') !== 0) return;
-  
-  const container = usernameEl.parentNode;
-  const label = document.createElement('div');
-  label.textContent = 'Изменить ник';
-  label.style.marginTop = '20px';
-  label.style.fontWeight = '600';
-  label.style.display = 'none';
-  
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.value = usernameEl.textContent.replace('b/', '');
-  input.placeholder = 'Новый ник';
-  input.style.width = '100%';
-  input.style.padding = '10px';
-  input.style.margin = '8px 0';
-  input.style.border = '1px solid #e0e0e0';
-  input.style.borderRadius = '8px';
-  input.style.display = 'none';
-  input.maxLength = 20;
-  
-  container.appendChild(label);
-  container.appendChild(input);
-  
-  // Показываем при редактировании
-  const editBtn = document.getElementById('edit-btn');
-  const saveBtn = document.getElementById('save-btn');
-  const cancelBtn = document.getElementById('cancel-btn');
-  
-  if (editBtn) editBtn.addEventListener('click', () => {
-    label.style.display = 'block';
-    input.style.display = 'block';
-  });
-  
-  if (cancelBtn) cancelBtn.addEventListener('click', () => {
-    label.style.display = 'none';
-    input.style.display = 'none';
-  });
-  
-  if (saveBtn) saveBtn.addEventListener('click', () => {
-    const newNick = input.value.trim();
-    const oldNick = usernameEl.textContent.replace('b/', '');
-    if (newNick && newNick !== oldNick && newNick.length >= 3 && /^[a-zA-Z0-9_]+$/.test(newNick)) {
-      // Обновляем сессию
-      try {
-        const session = JSON.parse(localStorage.getItem('fielsdown_session_v1') || '{}');
-        if (session.username === oldNick) {
-          session.username = newNick;
-          localStorage.setItem('fielsdown_session_v1', JSON.stringify(session));
-        }
-      } catch (e) {}
-      
-      // Обновляем данные пользователя
-      try {
-        const oldKey = `fielsdown_user_${oldNick.toLowerCase()}`;
-        const newKey = `fielsdown_user_${newNick.toLowerCase()}`;
-        const data = JSON.parse(localStorage.getItem(oldKey) || '{}');
-        data.username = newNick;
-        localStorage.setItem(newKey, JSON.stringify(data));
-        localStorage.removeItem(oldKey);
-      } catch (e) {}
-      
-      // Обновляем посты и комментарии
-      try {
-        let posts = JSON.parse(localStorage.getItem('fielsdown_posts_v2') || '[]');
-        posts = posts.map(p => p.author === oldNick ? {...p, author: newNick} : p);
-        localStorage.setItem('fielsdown_posts_v2', JSON.stringify(posts));
-      } catch (e) {}
-      
-      try {
-        let comments = JSON.parse(localStorage.getItem('fielsdown_comments_v3') || '[]');
-        comments = comments.map(c => c.author === oldNick ? {...c, author: newNick} : c);
-        localStorage.setItem('fielsdown_comments_v3', JSON.stringify(comments));
-      } catch (e) {}
-      
-      // Обновляем интерфейс
-      usernameEl.textContent = `b/${newNick}`;
-    }
-    label.style.display = 'none';
-    input.style.display = 'none';
-  });
-}, 100);
-    
   </script>
 </body>
 </html>
