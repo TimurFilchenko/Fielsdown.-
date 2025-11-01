@@ -1,16 +1,258 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Лента</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Лента — Fielsdown</title>
+  <link rel="icon" href="/public/favicon.ico" />
+  <style>
+    /* =============================================================================
+       FEED.HTML — СТИЛИ ЛЕНТЫ
+       ============================================================================= */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #fafafa;
+      --text-primary: #121212;
+      --text-muted: #999999;
+      --accent: #0077ff;
+      --border: #e0e0e0;
+      --card-radius: 12px;
+      --transition: all 0.24s cubic-bezier(0.33, 0, 0.67, 0.33);
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .back-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    /* === Вкладки === */
+    .tabs {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 28px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    .tab {
+      padding: 8px 16px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .tab.active {
+      color: var(--accent);
+      background: rgba(0, 119, 255, 0.05);
+    }
+
+    /* === Доски === */
+    .boards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .board-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 20px;
+      transition: var(--transition);
+    }
+
+    .board-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .board-link {
+      display: block;
+      font-size: 19px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+
+    .board-prefix {
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    .board-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .board-stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .no-boards {
+      text-align: center;
+      color: var(--text-muted);
+      padding: 40px 0;
+      font-style: italic;
+    }
+
+    @media (max-width: 600px) {
+      .boards-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
-  <script src="/js/posts.js"></script>
+  <div class="container">
+    <header>
+      <div class="logo">Fielsdown</div>
+      <a href="/" class="back-link">← Главная</a>
+    </header>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="popular">Популярное</div>
+      <div class="tab" data-tab="new">Новое</div>
+      <div class="tab" data-tab="old">Старое</div>
+    </div>
+
+    <div class="boards-grid" id="boards-container">
+      <!-- Доски будут загружены сюда -->
+    </div>
+  </div>
+
   <script>
-    // Получи имя доски из URL или задай напрямую
-    const board = new URLSearchParams(window.location.search).get('b') || 'games';
-    FielsdownPosts.init(board);
+    /* =============================================================================
+       FEED.JS — ЛОГИКА ЛЕНТЫ (встроена)
+       ============================================================================= */
+
+    // Получение досок и комментариев
+    function getBoards() {
+      try {
+        return JSON.parse(localStorage.getItem('fielsdown_boards_v1') || '[]');
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function getComments() {
+      try {
+        return JSON.parse(localStorage.getItem('fielsdown_comments_v3') || '[]');
+      } catch (e) {
+        return [];
+      }
+    }
+
+    // Подсчёт комментариев на доску
+    function countCommentsPerBoard() {
+      const comments = getComments();
+      const counts = {};
+      comments.forEach(c => {
+        counts[c.board] = (counts[c.board] || 0) + 1;
+      });
+      return counts;
+    }
+
+    // Рендер досок
+    function renderBoards(boards) {
+      const container = document.getElementById('boards-container');
+      if (boards.length === 0) {
+        container.innerHTML = '<div class="no-boards">Доски не найдены.</div>';
+        return;
+      }
+
+      const commentCounts = countCommentsPerBoard();
+      const html = boards.map(board => `
+        <div class="board-card">
+          <a href="/board.html?b=${encodeURIComponent(board.name)}" class="board-link">
+            <span class="board-prefix">b/</span>${board.name}
+          </a>
+          <p class="board-desc">${board.description || 'Без описания.'}</p>
+          <div class="board-stats">
+            <span>Комментариев: ${commentCounts[board.name] || 0}</span>
+            <span>by ${board.creator || 'anonymous'}</span>
+          </div>
+        </div>
+      `).join('');
+
+      container.innerHTML = html;
+    }
+
+    // Сортировка
+    function sortBoards(tab) {
+      const boards = getBoards();
+      const now = new Date();
+
+      if (tab === 'popular') {
+        const counts = countCommentsPerBoard();
+        return [...boards].sort((a, b) => (counts[b.name] || 0) - (counts[a.name] || 0));
+      } else if (tab === 'new') {
+        return [...boards].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      } else if (tab === 'old') {
+        return [...boards].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      }
+      return boards;
+    }
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', () => {
+      const tabs = document.querySelectorAll('.tab');
+      let currentTab = 'popular';
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          tabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          currentTab = tab.getAttribute('data-tab');
+          renderBoards(sortBoards(currentTab));
+        });
+      });
+
+      // Загрузка первой вкладки
+      renderBoards(sortBoards(currentTab));
+    });
   </script>
 </body>
 </html>
