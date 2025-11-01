@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>О проекте — Fielsdown</title>
+  <link rel="icon" href="/public/favicon.ico" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #fafafa;
+      --text-primary: #121212;
+      --text-muted: #666666;
+      --accent: #0077ff;
+      --border: #e0e0e0;
+      --card-radius: 12px;
+      --transition: all 0.24s ease;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.7;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 18px;
+    }
+
+    /* Вкладки */
+    .tabs {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+
+    .tab.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    /* Контент */
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      font-size: 24px;
+      margin: 28px 0 16px;
+      color: var(--text-primary);
+    }
+
+    p {
+      margin-bottom: 16px;
+      font-size: 16px;
+    }
+
+    .highlight {
+      background: rgba(0, 119, 255, 0.08);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .belarus-flag {
+      width: 100%;
+      max-width: 300px;
+      margin: 20px auto;
+      display: block;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .family-list {
+      background: var(--bg-secondary);
+      padding: 20px;
+      border-radius: var(--card-radius);
+      margin: 20px 0;
+    }
+
+    .key-list {
+      background: #f8f9fa;
+      padding: 16px;
+      border-left: 4px solid var(--accent);
+      font-family: monospace;
+      font-size: 14px;
+      margin: 16px 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 50px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Fielsdown — Имиджборд нового поколения</h1>
+      <p class="subtitle">Создан с душой, в одиночку, без шаблонов и компромиссов</p>
+    </header>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="about">О проекте</div>
+      <div class="tab" data-tab="author">Разработчик</div>
+      <div class="tab" data-tab="family">Семья</div>
+      <div class="tab" data-tab="tech">Технические детали</div>
+    </div>
+
+    <div class="tab-content active" id="tab-about">
+      <h2>История создания Fielsdown</h2>
+      <p>
+        Проект <span class="highlight">Fielsdown</span> был начат <strong>1 ноября 2025 года</strong> как личная инициатива по созданию честной, открытой и визуально насыщенной платформы для фандом-сообществ.
+      </p>
+      <p>
+        В отличие от гипер-мультяшных и коммерциализированных решений (таких как Zenless Zone Zero, Genshin Impact и другие), Fielsdown ставит во главу угла <strong>функциональность, точность и уважение к пользователю</strong>.
+      </p>
+      <p>
+        С самого начала проект разрабатывается <strong>в одиночку</strong>, без использования фреймворков, шаблонов или готовых решений. Каждая строка кода написана вручную, каждая функция продумана до мелочей — как швейцарские часы.
+      </p>
+      <p>
+        Название «Fielsdown» — это сочетание слов «Fields» (поля, пространство для творчества) и «Down» (вниз, к сути, к честности). Это место, где можно быть собой, без цензуры и без масок.
+      </p>
+    </div>
+
+    <div class="tab-content" id="tab-author">
+      <h2>Разработчик</h2>
+      <p>
+        <strong>Тимур Фильченко Сергеевич</strong> — создатель Fielsdown.
+      </p>
+      <p>
+        Родился в <strong>Минске, Республика Беларусь</strong>. С раннего возраста проявлял интерес к программированию, дизайну и созданию сложных систем.
+      </p>
+      <img 
+        src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Flag_of_Belarus.svg/1280px-Flag_of_Belarus.svg.png" 
+        alt="Флаг Беларуси — страна рождения разработчика"
+        class="belarus-flag"
+      >
+      <p>
+        На момент начала разработки Fielsdown (ноябрь 2025) Тимуру <strong>13 лет</strong>. Несмотря на юный возраст, он обладает глубоким пониманием архитектуры веб-приложений, принципов UX/UI и важности надёжности.
+      </p>
+      <p>
+        Тимур верит, что технологии должны служить людям, а не наоборот. Поэтому Fielsdown — это не просто сайт, а <strong>философия честного взаимодействия</strong>.
+      </p>
+    </div>
+
+    <div class="tab-content" id="tab-family">
+      <h2>Семья</h2>
+      <p>
+        Тимур растёт в дружной семье, которая поддерживает его увлечения и творческий путь.
+      </p>
+      <div class="family-list">
+        <p><strong>Старшая сестра:</strong> Анна Фильченкова Сергеевна (15 лет)</p>
+        <p><strong>Мама:</strong> Кристина Фильченкова Аллновна (42 года)</p>
+        <p><strong>Папа:</strong> Сергей Фильченко Александрович</p>
+      </div>
+      <p>
+        Семья играет важную роль в жизни Тимура, вдохновляя его на создание продуктов, которые приносят пользу и радость другим людям.
+      </p>
+    </div>
+
+    <div class="tab-content" id="tab-tech">
+      <h2>Техническая архитектура</h2>
+      <p>
+        Fielsdown построен с нуля на чистом HTML, CSS и JavaScript. Никаких фреймворков, никаких библиотек — только ручная работа.
+      </p>
+      <p>
+        Все данные хранятся в <code>localStorage</code> с использованием уникальных ключей, разработанных специально для этого проекта:
+      </p>
+      <div class="key-list">
+        fielsdown_session_v1<br>
+        fielsdown_boards_v1<br>
+        fielsdown_posts_v2<br>
+        fielsdown_comments_v3<br>
+        fielsdown_user_{username}
+      </div>
+      <p>
+        Система защищена от дубликатов, некорректного ввода и потери данных. Даже при отсутствии сервера, Fielsdown гарантирует целостность информации.
+      </p>
+      <p>
+        В будущем планируется переход на полноценный бэкенд с SQL-базой (схемы уже подготовлены: <code>create_users.sql</code>, <code>create_posts.sql</code>, <code>create_comments.sql</code>).
+      </p>
+    </div>
+
+    <footer>
+      <p>Fielsdown © 2025 — Создан Тимуром Фильченко Сергеевичем в Минске, Беларусь</p>
+      <p>«Работает как швейцарские часы — потому что каждая деталь важна»</p>
+    </footer>
+  </div>
+
+  <script>
+    // Переключение вкладок
+    document.addEventListener('DOMContentLoaded', () => {
+      const tabs = document.querySelectorAll('.tab');
+      const contents = document.querySelectorAll('.tab-content');
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const target = tab.getAttribute('data-tab');
+          
+          tabs.forEach(t => t.classList.remove('active'));
+          contents.forEach(c => c.classList.remove('active'));
+          
+          tab.classList.add('active');
+          document.getElementById(`tab-${target}`).classList.add('active');
+        });
+      });
+    });
+  </script>
+</body>
+  </html>
