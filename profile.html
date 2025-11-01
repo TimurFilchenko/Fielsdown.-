@@ -518,6 +518,131 @@
       
       loadUserProfile(targetUser);
     });
+
+    // =============================================================================
+// СМЕНА НИКА И АВТОМАТИЧЕСКОЕ ОБНОВЛЕНИЕ КОММЕНТАРИЕВ/ПОСТОВ
+// =============================================================================
+
+// Добавляем поле для смены ника (если в режиме редактирования)
+const editBtn = document.getElementById('edit-btn');
+if (editBtn) {
+  const usernameDisplay = document.getElementById('username-display');
+  const currentUsername = usernameDisplay.textContent.replace('b/', '');
+  
+  // Создаём поле ввода ника
+  const usernameEdit = document.createElement('input');
+  usernameEdit.type = 'text';
+  usernameEdit.id = 'username-edit';
+  usernameEdit.placeholder = 'Новый ник';
+  usernameEdit.value = currentUsername;
+  usernameEdit.style.display = 'none';
+  usernameEdit.style.width = '100%';
+  usernameEdit.style.padding = '10px';
+  usernameEdit.style.margin = '8px 0';
+  usernameEdit.style.border = '1px solid #e0e0e0';
+  usernameEdit.style.borderRadius = '8px';
+  usernameEdit.style.fontSize = '15px';
+  usernameEdit.maxLength = '20';
+  usernameEdit.pattern = '[a-zA-Z0-9_]+';
+  
+  // Вставляем поле под отображаемым ником
+  usernameDisplay.parentNode.insertBefore(usernameEdit, usernameDisplay.nextSibling);
+
+  // При нажатии "Редактировать" — показываем поле
+  const originalEditHandler = editBtn.onclick;
+  editBtn.onclick = function() {
+    if (originalEditHandler) originalEditHandler();
+    usernameEdit.style.display = 'block';
+  };
+
+  // При нажатии "Отмена" — скрываем
+  const cancelBtn = document.getElementById('cancel-btn');
+  const originalCancelHandler = cancelBtn.onclick;
+  cancelBtn.onclick = function() {
+    if (originalCancelHandler) originalCancelHandler();
+    usernameEdit.style.display = 'none';
+  };
+
+  // При сохранении — обновляем ник везде
+  const saveBtn = document.getElementById('save-btn');
+  const originalSaveHandler = saveBtn.onclick;
+  saveBtn.onclick = function() {
+    const newUsername = usernameEdit.value.trim();
+    
+    if (newUsername && newUsername !== currentUsername) {
+      // Валидация
+      if (newUsername.length < 3 || newUsername.length > 20) {
+        alert('Ник должен быть от 3 до 20 символов.');
+        return;
+      }
+      if (!/^[a-zA-Z0-9_]+$/.test(newUsername)) {
+        alert('Ник может содержать только латиницу, цифры и _');
+        return;
+      }
+
+      // Проверка на занятость (упрощённо)
+      const userKey = `fielsdown_user_${newUsername.toLowerCase()}`;
+      if (localStorage.getItem(userKey)) {
+        alert('Этот ник уже занят.');
+        return;
+      }
+
+      // === ОБНОВЛЕНИЕ СЕССИИ ===
+      const session = getSession();
+      if (session) {
+        session.username = newUsername;
+        saveSession(session);
+      }
+
+      // === ОБНОВЛЕНИЕ ДАННЫХ ПОЛЬЗОВАТЕЛЯ ===
+      const oldUserKey = `fielsdown_user_${currentUsername.toLowerCase()}`;
+      const newUserKey = `fielsdown_user_${newUsername.toLowerCase()}`;
+      const userData = JSON.parse(localStorage.getItem(oldUserKey) || '{}');
+      userData.username = newUsername;
+      localStorage.setItem(newUserKey, JSON.stringify(userData));
+      localStorage.removeItem(oldUserKey);
+
+      // === ОБНОВЛЕНИЕ ПОСТОВ ===
+      try {
+        const postsRaw = localStorage.getItem('fielsdown_posts_v2') || '[]';
+        const posts = JSON.parse(postsRaw);
+        const updatedPosts = posts.map(post => {
+          if (post.author === currentUsername) {
+            return { ...post, author: newUsername };
+          }
+          return post;
+        });
+        localStorage.setItem('fielsdown_posts_v2', JSON.stringify(updatedPosts));
+      } catch (e) {
+        console.warn('Не удалось обновить посты:', e);
+      }
+
+      // === ОБНОВЛЕНИЕ КОММЕНТАРИЕВ ===
+      try {
+        const commentsRaw = localStorage.getItem('fielsdown_comments_v3') || '[]';
+        const comments = JSON.parse(commentsRaw);
+        const updatedComments = comments.map(comment => {
+          if (comment.author === currentUsername) {
+            return { ...comment, author: newUsername };
+          }
+          return comment;
+        });
+        localStorage.setItem('fielsdown_comments_v3', JSON.stringify(updatedComments));
+      } catch (e) {
+        console.warn('Не удалось обновить комментарии:', e);
+      }
+
+      // Обновляем отображение
+      usernameDisplay.textContent = `b/${newUsername}`;
+    }
+
+    // Вызываем оригинальное сохранение (био, аватар)
+    if (originalSaveHandler) originalSaveHandler();
+    
+    // Скрываем поле
+    usernameEdit.style.display = 'none';
+  };
+    }
   </script>
 </body>
   </html>
