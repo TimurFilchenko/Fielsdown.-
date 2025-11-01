@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Лента</title>
+</head>
+<body>
+  <script src="/js/posts.js"></script>
+  <script>
+    // Получи имя доски из URL или задай напрямую
+    const board = new URLSearchParams(window.location.search).get('b') || 'games';
+    FielsdownPosts.init(board);
+  </script>
+</body>
+</html>
