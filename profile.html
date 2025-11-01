@@ -519,110 +519,92 @@
       loadUserProfile(targetUser);
     });
 
-      // =============================================================================
-// ИЗМЕНЕНИЕ НИКА — БЕЗОПАСНАЯ ВЕРСИЯ (НЕ ЛОМАЕТ КНОПКИ)
-// =============================================================================
-
-(function () {
-  if (window.location.search.includes('?user=')) return;
-
-  const usernameDisplay = document.getElementById('username-display');
-  if (!usernameDisplay || !usernameDisplay.textContent.startsWith('b/')) return;
-
-  const currentUsername = usernameDisplay.textContent.substring(2);
-  let session = null;
-  try {
-    const raw = localStorage.getItem('fielsdown_session_v1');
-    session = raw ? JSON.parse(raw) : null;
-  } catch (e) { return; }
-
-  if (!session || session.username !== currentUsername) return;
-
-  // Создаём элементы
-  const nickSection = document.createElement('div');
-  nickSection.id = 'nickname-edit-section';
-  nickSection.innerHTML = `
-    <label style="display:block;font-weight:600;margin-top:20px;">Изменить ник</label>
-    <input 
-      type="text" 
-      id="nickname-input-field" 
-      value="${currentUsername}"
-      placeholder="Новый ник"
-      style="width:100%;padding:10px;margin:8px 0;border:1px solid #e0e0e0;border-radius:8px;font-size:15px;"
-      maxlength="20"
-    />
-  `;
-  nickSection.style.display = 'none';
-
-  usernameDisplay.parentNode.insertBefore(nickSection, usernameDisplay.nextSibling);
-
-  // Показываем/скрываем при нажатии на кнопки
-  document.getElementById('edit-btn')?.addEventListener('click', () => {
-    nickSection.style.display = 'block';
+      // Добавляем поле "Изменить ник" — простая и надёжная реализация
+setTimeout(() => {
+  const usernameEl = document.getElementById('username-display');
+  if (!usernameEl || usernameEl.textContent.indexOf('b/') !== 0) return;
+  
+  const container = usernameEl.parentNode;
+  const label = document.createElement('div');
+  label.textContent = 'Изменить ник';
+  label.style.marginTop = '20px';
+  label.style.fontWeight = '600';
+  label.style.display = 'none';
+  
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = usernameEl.textContent.replace('b/', '');
+  input.placeholder = 'Новый ник';
+  input.style.width = '100%';
+  input.style.padding = '10px';
+  input.style.margin = '8px 0';
+  input.style.border = '1px solid #e0e0e0';
+  input.style.borderRadius = '8px';
+  input.style.display = 'none';
+  input.maxLength = 20;
+  
+  container.appendChild(label);
+  container.appendChild(input);
+  
+  // Показываем при редактировании
+  const editBtn = document.getElementById('edit-btn');
+  const saveBtn = document.getElementById('save-btn');
+  const cancelBtn = document.getElementById('cancel-btn');
+  
+  if (editBtn) editBtn.addEventListener('click', () => {
+    label.style.display = 'block';
+    input.style.display = 'block';
   });
-
-  document.getElementById('cancel-btn')?.addEventListener('click', () => {
-    nickSection.style.display = 'none';
+  
+  if (cancelBtn) cancelBtn.addEventListener('click', () => {
+    label.style.display = 'none';
+    input.style.display = 'none';
   });
-
-  // Сохранение ника
-  document.getElementById('save-btn')?.addEventListener('click', function() {
-    const newNick = document.getElementById('nickname-input-field')?.value.trim();
-    if (!newNick || newNick === currentUsername) {
-      nickSection.style.display = 'none';
-      return;
+  
+  if (saveBtn) saveBtn.addEventListener('click', () => {
+    const newNick = input.value.trim();
+    const oldNick = usernameEl.textContent.replace('b/', '');
+    if (newNick && newNick !== oldNick && newNick.length >= 3 && /^[a-zA-Z0-9_]+$/.test(newNick)) {
+      // Обновляем сессию
+      try {
+        const session = JSON.parse(localStorage.getItem('fielsdown_session_v1') || '{}');
+        if (session.username === oldNick) {
+          session.username = newNick;
+          localStorage.setItem('fielsdown_session_v1', JSON.stringify(session));
+        }
+      } catch (e) {}
+      
+      // Обновляем данные пользователя
+      try {
+        const oldKey = `fielsdown_user_${oldNick.toLowerCase()}`;
+        const newKey = `fielsdown_user_${newNick.toLowerCase()}`;
+        const data = JSON.parse(localStorage.getItem(oldKey) || '{}');
+        data.username = newNick;
+        localStorage.setItem(newKey, JSON.stringify(data));
+        localStorage.removeItem(oldKey);
+      } catch (e) {}
+      
+      // Обновляем посты и комментарии
+      try {
+        let posts = JSON.parse(localStorage.getItem('fielsdown_posts_v2') || '[]');
+        posts = posts.map(p => p.author === oldNick ? {...p, author: newNick} : p);
+        localStorage.setItem('fielsdown_posts_v2', JSON.stringify(posts));
+      } catch (e) {}
+      
+      try {
+        let comments = JSON.parse(localStorage.getItem('fielsdown_comments_v3') || '[]');
+        comments = comments.map(c => c.author === oldNick ? {...c, author: newNick} : c);
+        localStorage.setItem('fielsdown_comments_v3', JSON.stringify(comments));
+      } catch (e) {}
+      
+      // Обновляем интерфейс
+      usernameEl.textContent = `b/${newNick}`;
     }
-
-    if (newNick.length < 3 || newNick.length > 20 || !/^[a-zA-Z0-9_]+$/.test(newNick)) {
-      alert('Ник: 3–20 латинских символов, цифры, _');
-      return;
-    }
-
-    if (localStorage.getItem(`fielsdown_user_${newNick.toLowerCase()}`)) {
-      alert('Ник занят.');
-      return;
-    }
-
-    // === Обновление сессии ===
-    session.username = newNick;
-    localStorage.setItem('fielsdown_session_v1', JSON.stringify(session));
-
-    // === Обновление данных пользователя ===
-    const oldKey = `fielsdown_user_${currentUsername.toLowerCase()}`;
-    const newKey = `fielsdown_user_${newNick.toLowerCase()}`;
-    const userData = JSON.parse(localStorage.getItem(oldKey) || '{}');
-    userData.username = newNick;
-    localStorage.setItem(newKey, JSON.stringify(userData));
-    localStorage.removeItem(oldKey);
-
-    // === Обновление постов и комментариев ===
-    try {
-      const posts = JSON.parse(localStorage.getItem('fielsdown_posts_v2') || '[]');
-      localStorage.setItem('fielsdown_posts_v2', JSON.stringify(
-        posts.map(p => p.author === currentUsername ? {...p, author: newNick} : p)
-      ));
-    } catch (e) {}
-
-    try {
-      const comments = JSON.parse(localStorage.getItem('fielsdown_comments_v3') || '[]');
-      localStorage.setItem('fielsdown_comments_v3', JSON.stringify(
-        comments.map(c => c.author === currentUsername ? {...c, author: newNick} : c)
-      ));
-    } catch (e) {}
-
-    // Обновляем интерфейс
-    usernameDisplay.textContent = `b/${newNick}`;
-    nickSection.style.display = 'none';
-
-    // Статус
-    const status = document.getElementById('save-status');
-    if (status) {
-      status.textContent = '✅ Ник изменён!';
-      status.classList.add('show');
-      setTimeout(() => status.classList.remove('show'), 2000);
-    }
+    label.style.display = 'none';
+    input.style.display = 'none';
   });
-})();
+}, 100);
+    
   </script>
 </body>
 </html>
