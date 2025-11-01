@@ -520,20 +520,25 @@
     });
 
 // =============================================================================
-// ИСПРАВЛЕННАЯ СМЕНА НИКА — ГАРАНТИРОВАННО СОХРАНЯЕТСЯ
+// ГЛОБАЛЬНАЯ СМЕНА НИКА — РАБОТАЕТ НА ВСЕХ СТРАНИЦАХ
 // =============================================================================
 
-const editBtn = document.getElementById('edit-btn');
-if (editBtn && window.location.href.indexOf('?user=') === -1) { // только свой профиль
-  const usernameDisplay = document.getElementById('username-display');
-  const currentFull = usernameDisplay.textContent; // "b/kyrgyz_wolf"
-  const currentUsername = currentFull.replace(/^b\//, '');
+(function () {
+  // Работает только в своём профиле (не в режиме просмотра)
+  if (window.location.search.includes('?user=')) return;
 
+  const usernameDisplay = document.getElementById('username-display');
+  if (!usernameDisplay) return;
+
+  const currentUsername = usernameDisplay.textContent.replace(/^b\//, '');
+  const session = getSession();
+  if (!session || session.username !== currentUsername) return;
+
+  // Создаём поле ввода
   const nickInput = document.createElement('input');
   nickInput.type = 'text';
   nickInput.value = currentUsername;
   nickInput.placeholder = 'Новый ник';
-  nickInput.id = 'nickname-input';
   nickInput.style.display = 'none';
   nickInput.style.width = '100%';
   nickInput.style.padding = '10px';
@@ -541,76 +546,96 @@ if (editBtn && window.location.href.indexOf('?user=') === -1) { // только 
   nickInput.style.border = '1px solid #ddd';
   nickInput.style.borderRadius = '8px';
   nickInput.maxLength = 20;
+  nickInput.pattern = '[a-zA-Z0-9_]+';
   
   usernameDisplay.parentNode.insertBefore(nickInput, usernameDisplay.nextSibling);
 
-  // Показ при редактировании
-  const originalEditClick = editBtn.onclick;
-  editBtn.onclick = function() {
-    if (originalEditClick) originalEditClick();
-    nickInput.style.display = 'block';
-  };
+  // Показываем при редактировании
+  const editBtn = document.getElementById('edit-btn');
+  const originalEditClick = editBtn?.onclick;
+  if (editBtn) {
+    editBtn.onclick = function() {
+      if (originalEditClick) originalEditClick();
+      nickInput.style.display = 'block';
+    };
+  }
 
   // Сохранение
   const saveBtn = document.getElementById('save-btn');
-  const originalSaveClick = saveBtn.onclick;
-  saveBtn.onclick = function() {
-    const newNick = nickInput.value.trim();
-    if (!newNick || newNick === currentUsername) {
+  const originalSaveClick = saveBtn?.onclick;
+  if (saveBtn) {
+    saveBtn.onclick = function() {
+      const newNick = nickInput.value.trim();
+      if (!newNick || newNick === currentUsername) {
+        if (originalSaveClick) originalSaveClick();
+        nickInput.style.display = 'none';
+        return;
+      }
+
+      // Валидация
+      if (newNick.length < 3 || newNick.length > 20 || !/^[a-zA-Z0-9_]+$/.test(newNick)) {
+        alert('Ник: 3–20 латинских символов, цифры, _');
+        return;
+      }
+
+      // Проверка занятости
+      const userKeyCheck = `fielsdown_user_${newNick.toLowerCase()}`;
+      if (localStorage.getItem(userKeyCheck)) {
+        alert('Этот ник уже занят.');
+        return;
+      }
+
+      // === 1. ОБНОВЛЯЕМ СЕССИЮ (для текущей сессии) ===
+      session.username = newNick;
+      saveSession(session);
+
+      // === 2. ОБНОВЛЯЕМ ДАННЫЕ ПОЛЬЗОВАТЕЛЯ (для будущих входов) ===
+      const oldUserKey = `fielsdown_user_${currentUsername.toLowerCase()}`;
+      const newUserKey = `fielsdown_user_${newNick.toLowerCase()}`;
+      
+      // Получаем старые данные
+      const userData = JSON.parse(localStorage.getItem(oldUserKey) || '{}');
+      userData.username = newNick;
+      
+      // Сохраняем под новым ключом и удаляем старый
+      localStorage.setItem(newUserKey, JSON.stringify(userData));
+      localStorage.removeItem(oldUserKey);
+
+      // === 3. ОБНОВЛЯЕМ ПОСТЫ ===
+      try {
+        const posts = JSON.parse(localStorage.getItem('fielsdown_posts_v2') || '[]');
+        const updatedPosts = posts.map(p => 
+          p.author === currentUsername ? { ...p, author: newNick } : p
+        );
+        localStorage.setItem('fielsdown_posts_v2', JSON.stringify(updatedPosts));
+      } catch (e) { console.warn('Посты не обновлены:', e); }
+
+      // === 4. ОБНОВЛЯЕМ КОММЕНТАРИИ ===
+      try {
+        const comments = JSON.parse(localStorage.getItem('fielsdown_comments_v3') || '[]');
+        const updatedComments = comments.map(c => 
+          c.author === currentUsername ? { ...c, author: newNick } : c
+        );
+        localStorage.setItem('fielsdown_comments_v3', JSON.stringify(updatedComments));
+      } catch (e) { console.warn('Комментарии не обновлены:', e); }
+
+      // === 5. ОБНОВЛЯЕМ ИНТЕРФЕЙС ===
+      usernameDisplay.textContent = `b/${newNick}`;
+
+      // Выполняем оригинальное сохранение (био, аватар)
       if (originalSaveClick) originalSaveClick();
       nickInput.style.display = 'none';
-      return;
-    }
 
-    // Валидация
-    if (newNick.length < 3 || newNick.length > 20 || !/^[a-zA-Z0-9_]+$/.test(newNick)) {
-      alert('Ник: 3–20 латинских символов, цифры, _');
-      return;
-    }
-
-    // Проверка занятости
-    if (localStorage.getItem(`fielsdown_user_${newNick.toLowerCase()}`)) {
-      alert('Ник занят.');
-      return;
-    }
-
-    // === 1. Обновляем сессию ===
-    const session = getSession();
-    if (session) {
-      session.username = newNick;
-      saveSession(session); // ← КЛЮЧЕВОЙ МОМЕНТ
-    }
-
-    // === 2. Обновляем данные пользователя ===
-    const oldKey = `fielsdown_user_${currentUsername.toLowerCase()}`;
-    const newKey = `fielsdown_user_${newNick.toLowerCase()}`;
-    const userData = JSON.parse(localStorage.getItem(oldKey) || '{}');
-    userData.username = newNick;
-    localStorage.setItem(newKey, JSON.stringify(userData));
-    localStorage.removeItem(oldKey);
-
-    // === 3. Обновляем посты ===
-    try {
-      const posts = JSON.parse(localStorage.getItem('fielsdown_posts_v2') || '[]');
-      const updatedPosts = posts.map(p => p.author === currentUsername ? {...p, author: newNick} : p);
-      localStorage.setItem('fielsdown_posts_v2', JSON.stringify(updatedPosts));
-    } catch (e) {}
-
-    // === 4. Обновляем комментарии ===
-    try {
-      const comments = JSON.parse(localStorage.getItem('fielsdown_comments_v3') || '[]');
-      const updatedComments = comments.map(c => c.author === currentUsername ? {...c, author: newNick} : c);
-      localStorage.setItem('fielsdown_comments_v3', JSON.stringify(updatedComments));
-    } catch (e) {}
-
-    // Обновляем интерфейс
-    usernameDisplay.textContent = `b/${newNick}`;
-
-    // Выполняем оригинальное сохранение (био, аватар)
-    if (originalSaveClick) originalSaveClick();
-    nickInput.style.display = 'none';
-  };
-}
+      // === 6. УВЕДОМЛЕНИЕ ===
+      const status = document.getElementById('save-status');
+      if (status) {
+        status.textContent = '✅ Ник успешно изменён на всех страницах!';
+        status.classList.add('show');
+        setTimeout(() => status.classList.remove('show'), 3000);
+      }
+    };
+  }
+})();
   </script>
 </body>
 </html>
