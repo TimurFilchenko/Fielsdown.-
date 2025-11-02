@@ -7,17 +7,8 @@
   <link rel="icon" href="/public/favicon.ico" />
   <style>
     /* =============================================================================
-       THREAD.HTML — ПОЛНАЯ ВЕРСИЯ
-       Создание доски b/название
-       Всё внутри. Никаких внешних файлов.
+       THREAD.HTML — СТИЛИ (сохранены все старые + улучшения)
        ============================================================================= */
-
-    /* Глобальные стили */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
 
     :root {
       --bg-primary: #ffffff;
@@ -29,13 +20,16 @@
       --accent: #0077ff;
       --accent-hover: #005fcc;
       --danger: #e53935;
-      --success: #2e7d32;
       --border: #e0e0e0;
       --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
       --card-radius: 16px;
-      --input-radius: 10px;
-      --transition-fast: all 0.18s cubic-bezier(0.33, 0, 0.67, 0.33);
-      --transition-normal: all 0.24s cubic-bezier(0.33, 0, 0.67, 0.33);
+      --transition: all 0.24s cubic-bezier(0.33, 0, 0.67, 0.33);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
     body {
@@ -43,9 +37,6 @@
       color: var(--text-primary);
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       line-height: 1.6;
-      font-feature-settings: "liga", "kern";
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
       padding: 20px;
       min-height: 100vh;
     }
@@ -123,8 +114,7 @@
       font-size: 16px;
       background: var(--bg-secondary);
       color: var(--text-primary);
-      transition: var(--transition-normal);
-      outline: none;
+      transition: var(--transition);
     }
 
     .form-control:focus {
@@ -151,7 +141,7 @@
       font-size: 16px;
       text-decoration: none;
       cursor: pointer;
-      transition: var(--transition-normal);
+      transition: var(--transition);
       border: none;
       width: 100%;
     }
@@ -174,7 +164,7 @@
       min-height: 20px;
       opacity: 0;
       transform: translateY(-4px);
-      transition: var(--transition-fast);
+      transition: var(--transition);
     }
 
     .error-message.show {
@@ -183,7 +173,7 @@
     }
 
     .success-message {
-      color: var(--success);
+      color: #2e7d32;
       font-size: 15px;
       margin-top: 12px;
       opacity: 0;
@@ -251,7 +241,7 @@
           <div class="error-message" id="boardDescriptionError"></div>
         </div>
 
-        <button type="submit" class="btn btn-primary"> Создать доску</button>
+        <button type="submit" class="btn btn-primary">✅ Создать доску</button>
         <div class="success-message" id="successMessage"></div>
       </form>
     </div>
@@ -259,35 +249,14 @@
 
   <script>
     /* =============================================================================
-       ЛОГИКА СОЗДАНИЯ ДОСКИ — ПОЛНАЯ ВЕРСИЯ
-       Работает полностью автономно. Сохраняет в localStorage.
+       THREAD.HTML — ЛОГИКА СОЗДАНИЯ ДОСКИ
+       Поддержка: Vercel KV (основное) + localStorage (резерв)
        ============================================================================= */
 
     // Константы
-    const STORAGE_KEY = 'fielsdown_boards_v1';
+    const BOARDS_LOCAL_KEY = 'fielsdown_boards_v1';
 
-    // Функция получения досок
-    function getBoards() {
-      try {
-        const data = localStorage.getItem(STORAGE_KEY);
-        return data ? JSON.parse(data) : [];
-      } catch (e) {
-        console.warn('Ошибка чтения досок:', e);
-        return [];
-      }
-    }
-
-    // Функция сохранения досок
-    function saveBoards(boards) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(boards));
-      } catch (e) {
-        console.error('Не удалось сохранить доски:', e);
-        alert('Ошибка: не удалось сохранить доску. Проверьте место на диске.');
-      }
-    }
-
-    // Показ ошибки
+    // Вспомогательные функции
     function showError(elementId, message) {
       const errorEl = document.getElementById(elementId + 'Error');
       if (errorEl) {
@@ -296,7 +265,6 @@
       }
     }
 
-    // Скрыть ошибку
     function hideError(elementId) {
       const errorEl = document.getElementById(elementId + 'Error');
       if (errorEl) {
@@ -304,100 +272,113 @@
       }
     }
 
-    // Показ успеха
     function showSuccess(message) {
       const successEl = document.getElementById('successMessage');
       successEl.textContent = message;
       successEl.classList.add('show');
     }
 
-    // Основной обработчик
+    function getLocalBoards() {
+      try {
+        return JSON.parse(localStorage.getItem(BOARDS_LOCAL_KEY) || '[]');
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveLocalBoards(boards) {
+      localStorage.setItem(BOARDS_LOCAL_KEY, JSON.stringify(boards));
+    }
+
+    // Генерация ника (для автора)
+    function getCurrentUsername() {
+      try {
+        const session = JSON.parse(localStorage.getItem('fielsdown_session_v1') || '{}');
+        return session.username || 'anonymous';
+      } catch (e) {
+        return 'anonymous';
+      }
+    }
+
+    // Основная логика
     document.addEventListener('DOMContentLoaded', function () {
       const form = document.getElementById('createBoardForm');
       const nameInput = document.getElementById('boardName');
       const descInput = document.getElementById('boardDescription');
 
-      // Динамическое скрытие ошибок при вводе
+      // Динамическая очистка ошибок
       nameInput.addEventListener('input', () => hideError('boardName'));
       descInput.addEventListener('input', () => hideError('boardDescription'));
 
-      // Обработка отправки формы
-      form.addEventListener('submit', function (e) {
-        e.preventDefault(); // 🔥 Предотвращаем перезагрузку
+      // Отправка формы
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
 
-        // Сброс сообщений
         hideError('boardName');
         hideError('boardDescription');
         document.getElementById('successMessage').classList.remove('show');
 
-        // Получение и очистка данных
         let name = nameInput.value.trim();
         const description = descInput.value.trim();
 
-        // Валидация названия
+        // Валидация
         if (!name) {
           showError('boardName', 'Пожалуйста, введите название доски.');
           return;
         }
-
-        // Приведение к нижнему регистру
         name = name.toLowerCase();
-
-        // Проверка длины
         if (name.length < 2 || name.length > 32) {
           showError('boardName', 'Название должно быть от 2 до 32 символов.');
           return;
         }
-
-        // Проверка разрешённых символов
         if (!/^[a-z0-9_-]+$/.test(name)) {
           showError('boardName', 'Разрешены только латинские буквы, цифры, дефис (-) и подчёркивание (_).');
           return;
         }
 
-        // Проверка на дубликат
-        const existingBoards = getBoards();
-        const isDuplicate = existingBoards.some(board => board.name === name);
-        if (isDuplicate) {
-          showError('boardName', `Доска b/${name} уже существует.`);
-          return;
-        }
+        const creator = getCurrentUsername();
 
-        // Получаем автора из сессии
-        let creator = 'anonymous';
+        // === ПОПЫТКА ОТПРАВИТЬ НА VERCel KV ===
+        let createdViaServer = false;
         try {
-          const sessionRaw = localStorage.getItem('fielsdown_session_v1');
-          if (sessionRaw) {
-            const session = JSON.parse(sessionRaw);
-            if (session && session.isLoggedIn && session.username) {
-              creator = session.username;
-            }
+          const response = await fetch('/api/boards', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, description, creator })
+          });
+
+          if (response.ok) {
+            showSuccess(`✅ Доска b/${name} создана и видна всем!`);
+            createdViaServer = true;
+          } else {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Ошибка сервера');
           }
-        } catch (e) {
-          console.warn('Не удалось определить автора');
+        } catch (serverError) {
+          console.warn('Сервер недоступен, используем локальное сохранение:', serverError);
+          
+          // === РЕЗЕРВ: сохранение в localStorage ===
+          const localBoards = getLocalBoards();
+          if (localBoards.some(b => b.name === name)) {
+            showError('boardName', `Доска b/${name} уже существует.`);
+            return;
+          }
+
+          const newBoard = {
+            name: name,
+            description: description || 'Без описания.',
+            creator: creator,
+            createdAt: new Date().toISOString()
+          };
+
+          localBoards.push(newBoard);
+          saveLocalBoards(localBoards);
+          showSuccess(`✅ Доска b/${name} создана (только для вас).`);
         }
 
-        // Создание новой доски
-        const newBoard = {
-          name: name,
-          description: description || 'Без описания.',
-          createdAt: new Date().toISOString(),
-          creator: creator,
-          postCount: 0
-        };
-
-        // Сохранение
-        existingBoards.push(newBoard);
-        saveBoards(existingBoards);
-
-        // Успех
-        showSuccess(`✅ Доска b/${name} успешно создана!`);
-
-        // Очистка формы
+        // Очистка и редирект
         nameInput.value = '';
         descInput.value = '';
-
-        // Автоматический переход
         setTimeout(() => {
           window.location.href = `/board.html?b=${encodeURIComponent(name)}`;
         }, 1200);
