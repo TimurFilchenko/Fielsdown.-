@@ -552,6 +552,37 @@
       renderBoards
     };
   </script>
+
+<script>
+  // Загружаем доски с сервера
+  fetch('/api/public')
+    .then(res => res.json())
+    .then(boards => {
+      const container = document.getElementById('boards-container');
+      if (!container || boards.length === 0) return;
+
+      let html = '';
+      boards.forEach(board => {
+        html += `
+          <div class="board-card">
+            <a href="/board.html?b=${encodeURIComponent(board.name)}" class="board-link">
+              <span class="board-prefix">b/</span>${board.name}
+            </a>
+            <p class="board-desc">${board.description || 'Без описания.'}</p>
+          </div>
+        `;
+      });
+      html += `
+        <a href="/thread.html?mode=create-board" class="board-card board-create">
+          <span class="plus-sign">+</span>
+          <span>Создать доску</span>
+        </a>
+      `;
+      container.innerHTML = html;
+    })
+    .catch(err => console.log('Сервер недоступен, используем локальные данные'));
+</script>
+  
   <script src="/js/main.js"></script>
 <script src="/js/public.js"></script> <!-- ← только эта строка -->
 </body>
