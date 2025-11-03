@@ -1,0 +1,10 @@
+{
+  "name": "fielsdown",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "echo 'Запуск через Vercel'",
+    "build": "echo 'Сборка не требуется'"
+  }
+}
